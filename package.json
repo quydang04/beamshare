@@ -1,0 +1,25 @@
+{
+  "name": "simple-airdrop",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "peer": "node server/peer-server.js",
+    "dev": "concurrently \"npm run peer\" \"npm start\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "express": "^5.1.0",
+    "peer": "^1.0.2",
+    "peerjs": "^1.5.5",
+    "ws": "^8.18.3"
+  },
+  "type": "module",
+  "devDependencies": {
+    "concurrently": "^9.2.0"
+  }
+}
