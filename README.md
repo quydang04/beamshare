@@ -1,4 +1,4 @@
-# Simple AirDrop - P2P File Transfer
+# Beamshare - P2P File Transfer
 
 Ứng dụng chia sẻ file P2P trong browser.
 
