@@ -27,6 +27,7 @@ const translations = {
         discoveryUnavailable: 'Discovery service unavailable',
         noDevicesFound: 'No devices found',
         available: 'Available',
+        makeSureSameNetwork: 'Make sure you\'re on the same network',
 
         // File operations
         selectFiles: 'Select Files',
@@ -49,6 +50,9 @@ const translations = {
         transferAccepted: 'File transfer accepted!',
         transferDeclined: 'File transfer was declined',
         waitingForAcceptance: 'Waiting for {fileName} to be accepted...',
+        dropFilesHere: 'Drop files here or click to select',
+        supportAnyFileType: 'Support any file type',
+        selectFiles: 'Select Files',
 
         // Room functionality
         yourRoom: 'Your Room',
@@ -64,6 +68,8 @@ const translations = {
         deviceName: 'Device Name',
         autoAcceptFiles: 'Auto-accept files',
         soundNotifications: 'Sound notifications',
+        wakeLock: 'Keep screen awake during transfers',
+        persistentConnections: 'Maintain connections when network is lost',
         save: 'Save',
         cancel: 'Cancel',
         close: 'Close',
@@ -100,6 +106,18 @@ const translations = {
         step2: '2. Devices will automatically discover each other',
         step3: '3. Select files and click on a device to send',
         step4: '4. Accept the transfer on the receiving device',
+
+        // Help dialog sections
+        helpNearbyDevices: 'Nearby Devices',
+        helpNearbyDevicesDesc: 'Devices on the same network will automatically appear. Click "Connect" to establish a connection.',
+        helpRoomSharing: 'Room Sharing',
+        helpRoomSharingDesc: 'Share your room code or QR code with others to let them join your room from anywhere.',
+        helpFileTransfer: 'File Transfer',
+        helpFileTransferDesc: 'Drag & drop files or click "Select Files" to choose files. Then click on a connected device to send.',
+        helpManualConnection: 'Manual Connection',
+        helpManualConnectionDesc: 'If automatic discovery doesn\'t work, you can manually enter a device ID to connect.',
+        helpPrivacySecurity: 'Privacy & Security',
+        helpPrivacySecurityDesc: 'All transfers are peer-to-peer and encrypted. No files are stored on our servers.',
 
         // Additional UI elements
         yourDevice: 'Your Device',
@@ -169,6 +187,7 @@ const translations = {
         discoveryUnavailable: 'Dịch vụ khám phá không khả dụng',
         noDevicesFound: 'Không tìm thấy thiết bị nào',
         available: 'Có sẵn',
+        makeSureSameNetwork: 'Đảm bảo bạn đang ở cùng mạng',
 
         // File operations
         selectFiles: 'Chọn tệp',
@@ -191,6 +210,9 @@ const translations = {
         transferAccepted: 'Chuyển tệp đã được chấp nhận!',
         transferDeclined: 'Chuyển tệp đã bị từ chối',
         waitingForAcceptance: 'Đang chờ {fileName} được chấp nhận...',
+        dropFilesHere: 'Thả tệp vào đây hoặc nhấp để chọn',
+        supportAnyFileType: 'Hỗ trợ mọi loại tệp',
+        selectFiles: 'Chọn tệp',
 
         // Room functionality
         yourRoom: 'Phòng của bạn',
@@ -206,6 +228,8 @@ const translations = {
         deviceName: 'Tên thiết bị',
         autoAcceptFiles: 'Tự động chấp nhận tệp',
         soundNotifications: 'Thông báo âm thanh',
+        wakeLock: 'Giữ màn hình sáng khi truyền tệp',
+        persistentConnections: 'Duy trì kết nối khi mất mạng',
         save: 'Lưu',
         cancel: 'Hủy',
         close: 'Đóng',
@@ -242,6 +266,18 @@ const translations = {
         step2: '2. Các thiết bị sẽ tự động khám phá lẫn nhau',
         step3: '3. Chọn tệp và nhấp vào thiết bị để gửi',
         step4: '4. Chấp nhận chuyển tệp trên thiết bị nhận',
+
+        // Help dialog sections
+        helpNearbyDevices: 'Thiết bị gần đây',
+        helpNearbyDevicesDesc: 'Các thiết bị trên cùng mạng sẽ tự động xuất hiện. Nhấp "Kết nối" để thiết lập kết nối.',
+        helpRoomSharing: 'Chia sẻ phòng',
+        helpRoomSharingDesc: 'Chia sẻ mã phòng hoặc mã QR với người khác để họ có thể tham gia phòng của bạn từ bất kỳ đâu.',
+        helpFileTransfer: 'Truyền tệp',
+        helpFileTransferDesc: 'Kéo thả tệp hoặc nhấp "Chọn tệp" để chọn tệp. Sau đó nhấp vào thiết bị đã kết nối để gửi.',
+        helpManualConnection: 'Kết nối thủ công',
+        helpManualConnectionDesc: 'Nếu tự động phát hiện không hoạt động, bạn có thể nhập thủ công ID thiết bị để kết nối.',
+        helpPrivacySecurity: 'Quyền riêng tư & Bảo mật',
+        helpPrivacySecurityDesc: 'Tất cả việc truyền tải đều là ngang hàng và được mã hóa. Không có tệp nào được lưu trữ trên máy chủ của chúng tôi.',
 
         // Additional UI elements
         yourDevice: 'Thiết bị của bạn',

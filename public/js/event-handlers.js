@@ -102,19 +102,31 @@ function setupRoomEvents() {
     const copyRoomCodeDialog = document.getElementById('copy-room-code-dialog');
     if (copyRoomCodeDialog) {
         copyRoomCodeDialog.addEventListener('click', () => {
-            navigator.clipboard.writeText(currentRoomCode);
-            showNotification(t('roomCodeCopied'));
+            // Use the room manager copy function
+            if (typeof copyRoomCode === 'function') {
+                copyRoomCode();
+            } else {
+                // Fallback to direct clipboard copy
+                navigator.clipboard.writeText(currentRoomCode);
+                showNotification(t('roomCodeCopied'));
+            }
         });
     }
 
     const refreshRoomDialog = document.getElementById('refresh-room-dialog');
     if (refreshRoomDialog) {
         refreshRoomDialog.addEventListener('click', () => {
-            currentRoomCode = generateRoomCode();
-            updateRoomCodeDisplay();
-            generateQRCode();
-            generateQRCodeDialog();
-            showNotification(t('newRoomGenerated'));
+            // Use the new public room creation functionality
+            if (typeof createPublicRoom === 'function') {
+                createPublicRoom();
+            } else {
+                // Fallback to local room generation
+                currentRoomCode = generateRoomCode();
+                updateRoomCodeDisplay();
+                generateQRCode();
+                generateQRCodeDialog();
+                showNotification(t('newRoomGenerated'));
+            }
         });
     }
 
@@ -242,44 +254,69 @@ function selectDevice(peerId) {
 
 // Settings functions
 function saveSettings() {
-    const deviceNameInput = document.getElementById('device-name-input');
-    const deviceName = deviceNameInput ? deviceNameInput.value.trim() : '';
+    try {
+        const deviceNameInput = document.getElementById('device-name-input');
+        const deviceName = deviceNameInput ? deviceNameInput.value.trim() : '';
 
-    // Check if device name has changed
-    const oldDeviceName = window.deviceInfo ? window.deviceInfo.name : '';
-    const deviceNameChanged = deviceName && deviceName !== oldDeviceName;
+        // Check if device name has changed
+        const oldDeviceName = window.deviceInfo ? window.deviceInfo.name : '';
+        const deviceNameChanged = deviceName && deviceName !== oldDeviceName;
 
-    if (deviceName) {
-        localStorage.setItem('device_name', deviceName);
-        if (window.deviceInfo) {
-            window.deviceInfo.name = deviceName;
+        if (deviceName) {
+            localStorage.setItem('device_name', deviceName);
+
+            if (window.deviceInfo) {
+                window.deviceInfo.name = deviceName;
+            }
+
+            // If device name changed, notify server and other devices
+            if (deviceNameChanged) {
+                updateDeviceNameRealtime(deviceName);
+            }
         }
 
-        // If device name changed, notify server and other devices
-        if (deviceNameChanged) {
-            updateDeviceNameRealtime(deviceName);
+        // Save auto-accept setting
+        const autoAcceptSwitch = document.getElementById('auto-accept-switch');
+        if (autoAcceptSwitch) {
+            // For MDUI switches, we need to check the 'checked' property
+            const autoAccept = autoAcceptSwitch.checked || autoAcceptSwitch.hasAttribute('checked');
+            localStorage.setItem('auto_accept_files', autoAccept.toString());
         }
-    }
 
-    // Save auto-accept setting
-    const autoAcceptSwitch = document.getElementById('auto-accept-switch');
-    if (autoAcceptSwitch) {
-        const autoAccept = autoAcceptSwitch.checked;
-        localStorage.setItem('auto_accept_files', autoAccept);
-    }
+        // Save sound notifications setting
+        const soundSwitch = document.getElementById('sound-notifications-switch');
+        if (soundSwitch) {
+            // For MDUI switches, we need to check the 'checked' property
+            const soundNotifications = soundSwitch.checked || soundSwitch.hasAttribute('checked');
+            localStorage.setItem('sound_notifications', soundNotifications.toString());
+        }
 
-    // Save sound notifications setting
-    const soundSwitch = document.getElementById('sound-notifications-switch');
-    if (soundSwitch) {
-        const soundNotifications = soundSwitch.checked;
-        localStorage.setItem('sound_notifications', soundNotifications);
-    }
 
-    showNotification(t('settingsSaved'), 'success');
 
-    const settingsDialog = document.getElementById('settings-dialog');
-    if (settingsDialog) {
-        settingsDialog.open = false;
+
+
+        // Show success notification
+        if (typeof showNotification === 'function') {
+            if (typeof t === 'function') {
+                showNotification(t('settingsSaved'), 'success');
+            } else {
+                showNotification('Settings saved!', 'success');
+            }
+        }
+
+        // Close settings dialog
+        const settingsDialog = document.getElementById('settings-dialog');
+        if (settingsDialog) {
+            settingsDialog.open = false;
+        }
+
+    } catch (error) {
+        console.error('Error in saveSettings():', error);
+        if (typeof showNotification === 'function') {
+            showNotification('Error saving settings: ' + error.message, 'error');
+        } else {
+            alert('Error saving settings: ' + error.message);
+        }
     }
 }
 
@@ -339,58 +376,7 @@ function updateLocalDeviceDisplay() {
     });
 }
 
-// Room functions
-function joinRoom() {
-    const roomCode = joinRoomCodeInput ? joinRoomCodeInput.value.trim().toUpperCase() : '';
-    if (!roomCode) {
-        showNotification('Please enter a room code');
-        return;
-    }
 
-    if (roomCode === currentRoomCode) {
-        showNotification('You are already in this room');
-        return;
-    }
-
-    // In a real implementation, you would connect to a signaling server
-    // For now, we'll just show a message
-    showNotification('Room joining feature coming soon!');
-}
-
-function joinRoomFromDialog() {
-    const roomCode = joinRoomCodeDialogInput ? joinRoomCodeDialogInput.value.trim().toUpperCase() : '';
-    if (!roomCode) {
-        showNotification('Please enter a room code');
-        return;
-    }
-
-    if (roomCode.length !== 5) {
-        showNotification('Room code must be 5 characters');
-        return;
-    }
-
-    if (roomCode === currentRoomCode) {
-        showNotification('You are already in this room');
-        const joinRoomDialog = document.getElementById('join-room-dialog');
-        if (joinRoomDialog) {
-            joinRoomDialog.open = false;
-        }
-        return;
-    }
-
-    // Close dialog
-    const joinRoomDialog = document.getElementById('join-room-dialog');
-    if (joinRoomDialog) {
-        joinRoomDialog.open = false;
-    }
-    if (joinRoomCodeDialogInput) {
-        joinRoomCodeDialogInput.value = '';
-    }
-
-    // In a real implementation, you would connect to a signaling server
-    // For now, we'll just show a message
-    showNotification(`Joining room ${roomCode}... (Feature coming soon!)`);
-}
 
 // Export to global scope
 window.setupEventListeners = setupEventListeners;
@@ -402,5 +388,4 @@ window.selectDevice = selectDevice;
 window.saveSettings = saveSettings;
 window.updateDeviceNameRealtime = updateDeviceNameRealtime;
 window.updateLocalDeviceDisplay = updateLocalDeviceDisplay;
-window.joinRoom = joinRoom;
-window.joinRoomFromDialog = joinRoomFromDialog;
+
