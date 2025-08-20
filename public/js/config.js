@@ -23,12 +23,20 @@ const DataType = {
 const DISCOVERY_INTERVAL = 5000; // 5 seconds
 const DEVICE_TIMEOUT = 30000; // 30 seconds
 
+// Connection state management
+let reconnectAttempts = 0;
+let reconnectTimeout = null;
+const MAX_RECONNECT_ATTEMPTS = 10;
+
 // File transfer configuration
 const FILE_CHUNK_SIZE = 16384; // 16KB chunks
 
 // PeerJS configuration
 const PEER_CONFIG = {
-    // Use default PeerJS cloud service for better compatibility
+    // Use public PeerJS server 0.peerjs.com
+    host: '0.peerjs.com',
+    port: 443,
+    secure: true,
     config: {
         iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
@@ -38,15 +46,20 @@ const PEER_CONFIG = {
             { urls: 'stun:stun4.l.google.com:19302' }
         ]
     },
-    debug: 2 // Enable debug logging
+    debug: 1 // Reduce debug logging
 };
 
 // Device info configuration
-const getDeviceInfo = () => ({
-    name: getDeviceName(),
-    type: getDeviceType(),
-    browser: getBrowserInfo()
-});
+const getDeviceInfo = () => {
+    if (typeof getSystemInfo === 'function') {
+        return getSystemInfo();
+    }
+    return {
+        name: getDeviceName(),
+        type: getDeviceType(),
+        browser: getBrowserInfo()
+    };
+};
 
 // Export to global scope
 window.DataType = DataType;
@@ -55,3 +68,6 @@ window.DEVICE_TIMEOUT = DEVICE_TIMEOUT;
 window.FILE_CHUNK_SIZE = FILE_CHUNK_SIZE;
 window.PEER_CONFIG = PEER_CONFIG;
 window.getDeviceInfo = getDeviceInfo;
+window.reconnectAttempts = reconnectAttempts;
+window.reconnectTimeout = reconnectTimeout;
+window.MAX_RECONNECT_ATTEMPTS = MAX_RECONNECT_ATTEMPTS;

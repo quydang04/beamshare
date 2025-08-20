@@ -13,6 +13,9 @@ function updateUILanguage() {
         languageBtn.setAttribute('title', langNames[currentLanguage] || 'Language');
     }
 
+    // Update all elements with data-lang attributes
+    updateDataLangElements();
+
     // Update navigation drawer items
     updateNavigationDrawer();
 
@@ -27,6 +30,30 @@ function updateUILanguage() {
 
     // Update device grid if it exists
     updateDeviceGrid();
+}
+
+// Update elements with data-lang attributes
+function updateDataLangElements() {
+    // Update elements with data-lang attribute
+    const langElements = document.querySelectorAll('[data-lang]');
+    langElements.forEach(element => {
+        const key = element.getAttribute('data-lang');
+        if (key) {
+            element.textContent = t(key);
+        }
+    });
+
+    // Update text fields with data-lang attributes
+    const textFields = document.querySelectorAll('mdui-text-field[data-lang-label]');
+    textFields.forEach(field => {
+        const labelKey = field.getAttribute('data-lang-label');
+        const placeholderKey = field.getAttribute('data-lang-placeholder');
+        const helperKey = field.getAttribute('data-lang-helper');
+
+        if (labelKey) field.setAttribute('label', t(labelKey));
+        if (placeholderKey) field.setAttribute('placeholder', t(placeholderKey));
+        if (helperKey) field.setAttribute('helper', t(helperKey));
+    });
 }
 
 function updateNavigationDrawer() {
@@ -276,10 +303,7 @@ function scrollToSection(sectionId) {
     });
 }
 
-function openJoinRoomDialog() {
-    navigationDrawer.open = false;
-    document.getElementById('join-room-dialog').open = true;
-}
+
 
 function openHelpDialog() {
     navigationDrawer.open = false;

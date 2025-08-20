@@ -7,8 +7,9 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('🚀 BeamShare initializing...');
 
     // Initialize device info after utils.js is loaded
-    if (typeof getDeviceInfo === 'function') {
-        window.deviceInfo = getDeviceInfo();
+    if (typeof getSystemInfo === 'function') {
+        window.deviceInfo = getSystemInfo();
+        console.log('Device info initialized:', window.deviceInfo);
 
         // Update local device display with initial device name and system info
         if (typeof updateLocalDeviceDisplay === 'function') {
@@ -17,6 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Display detailed system information
         updateSystemInfoDisplay();
+    } else {
+        console.warn('getSystemInfo function not found');
     }
 
     // Load saved language first
@@ -31,8 +34,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // Setup all event listeners
     setupEventListeners();
 
-    // Load saved settings
-    loadSettings();
+    // Load saved settings after a short delay to ensure MDUI components are initialized
+    setTimeout(() => {
+        loadSettings();
+
+        // Initialize persistent connections system
+        if (typeof initializePersistentConnections === 'function') {
+            initializePersistentConnections();
+        }
+    }, 200);
 
     // Update UI language after everything is loaded
     setTimeout(() => {
@@ -78,14 +88,33 @@ function loadSettings() {
     const autoAcceptSwitch = document.getElementById('auto-accept-switch');
     if (autoAcceptSwitch) {
         autoAcceptSwitch.checked = autoAccept;
+        // For MDUI switches, also set the attribute
+        if (autoAccept) {
+            autoAcceptSwitch.setAttribute('checked', '');
+        } else {
+            autoAcceptSwitch.removeAttribute('checked');
+        }
+        console.log('✅ Auto-accept setting loaded:', autoAccept);
     }
 
     // Load sound notifications setting (default: true)
     const soundNotifications = localStorage.getItem('sound_notifications');
     const soundSwitch = document.getElementById('sound-notifications-switch');
     if (soundSwitch) {
-        soundSwitch.checked = soundNotifications !== 'false';
+        const soundEnabled = soundNotifications !== 'false';
+        soundSwitch.checked = soundEnabled;
+        // For MDUI switches, also set the attribute
+        if (soundEnabled) {
+            soundSwitch.setAttribute('checked', '');
+        } else {
+            soundSwitch.removeAttribute('checked');
+        }
+        console.log('✅ Sound notifications setting loaded:', soundEnabled);
     }
+
+
+
+
 }
 
 // Check for room code in URL parameters
@@ -211,3 +240,17 @@ window.initializeApp = () => {
 
 // Export system info function
 window.updateSystemInfoDisplay = updateSystemInfoDisplay;
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -27,6 +27,8 @@ const fileDialogMessage = document.getElementById("file-dialog-message");
 const acceptFileBtn = document.getElementById("accept-file-btn");
 const rejectFileBtn = document.getElementById("reject-file-btn");
 const notificationSnackbar = document.getElementById("notification-snackbar");
+const copyRoomCodeDialogBtn = document.getElementById("copy-room-code-dialog");
+const refreshRoomDialogBtn = document.getElementById("refresh-room-dialog");
 
 // Global variables
 let peer = null;

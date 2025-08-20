@@ -47,16 +47,18 @@ function connectToSignalingServer() {
 
     signalingSocket.onopen = () => {
         console.log('Connected to signaling server');
+
+        // Reset reconnection attempts on successful connection
+        reconnectAttempts = 0;
+        if (reconnectTimeout) {
+            clearTimeout(reconnectTimeout);
+            reconnectTimeout = null;
+        }
+
         updateDiscoveryStatus();
 
-        // Send device info to server (will be updated with PeerJS ID later)
-        const currentDeviceInfo = window.deviceInfo || getDeviceInfo();
-        signalingSocket.send(JSON.stringify({
-            type: 'device-info',
-            deviceInfo: currentDeviceInfo
-        }));
-
-        // Join IP room for local network discovery
+        // Join IP room for local network discovery automatically
+        // The server will handle device info during connection
         setTimeout(() => {
             joinIPRoom();
         }, 100);
@@ -71,8 +73,8 @@ function connectToSignalingServer() {
         }
     };
 
-    signalingSocket.onclose = () => {
-        console.log('Disconnected from signaling server');
+    signalingSocket.onclose = (event) => {
+        console.log('Disconnected from signaling server', event.code, event.reason);
         signalingSocket = null;
 
         // Clear all nearby devices when disconnected
@@ -80,12 +82,16 @@ function connectToSignalingServer() {
         updateDeviceGrid();
         updateDiscoveryStatus();
 
-        // Try to reconnect after 3 seconds
-        setTimeout(() => {
+        // Implement exponential backoff for reconnection
+        const reconnectDelay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
+        console.log(`Attempting to reconnect in ${reconnectDelay}ms (attempt ${reconnectAttempts + 1})`);
+
+        reconnectTimeout = setTimeout(() => {
             if (!signalingSocket || signalingSocket.readyState === WebSocket.CLOSED) {
+                reconnectAttempts++;
                 connectToSignalingServer();
             }
-        }, 3000);
+        }, reconnectDelay);
     };
 
     signalingSocket.onerror = (error) => {
@@ -103,14 +109,23 @@ function joinIPRoom() {
 }
 
 function updateServerWithPeerID(peerId) {
+    // Store the PeerJS ID and send it to server for proper ID mapping
+    console.log('PeerJS ID available:', peerId);
+
+    // Store our PeerJS ID globally
+    window.myPeerJSId = peerId;
+
+    // Send PeerJS ID to server so other clients can use it for connections
     if (signalingSocket && signalingSocket.readyState === WebSocket.OPEN) {
-        const currentDeviceInfo = window.deviceInfo || getDeviceInfo();
         signalingSocket.send(JSON.stringify({
-            type: 'device-info',
-            deviceInfo: currentDeviceInfo,
-            peerId: peerId
+            type: 'peerjs-id-update',
+            peerJSId: peerId
         }));
-        console.log('Updated server with PeerJS ID:', peerId);
+
+        // Request updated peers list to ensure we have the latest information
+        signalingSocket.send(JSON.stringify({
+            type: 'request-devices'
+        }));
     }
 }
 
@@ -122,18 +137,16 @@ function handleSignalingMessage(message) {
             break;
 
         case 'peer-joined':
-            console.log('New peer joined:', message.peer.id);
+            console.log('New peer joined:', message.peer);
             addPeerToNearbyDevices(message.peer, message.roomType);
+
+
             break;
 
         case 'peer-left':
             console.log('Peer left:', message.peerId);
-            // Mark as offline but keep in list for a while
-            const deviceInfo = nearbyDevices.get(message.peerId);
-            if (deviceInfo) {
-                deviceInfo.offline = true;
-                deviceInfo.lastSeen = Date.now();
-            }
+            // Remove from nearby devices immediately for better UX
+            nearbyDevices.delete(message.peerId);
             // Remove from connections if connected
             if (connections && connections.has(message.peerId)) {
                 connections.delete(message.peerId);
@@ -156,14 +169,52 @@ function handleSignalingMessage(message) {
             }
             break;
 
+        case 'peerjs-id-updated':
+            console.log('PeerJS ID updated for peer:', message.peerId, 'PeerJS ID:', message.peerJSId);
+            // Update the PeerJS ID for the device
+            const device = nearbyDevices.get(message.peerId);
+            if (device) {
+                device.peerJSId = message.peerJSId;
+                console.log('Updated PeerJS ID for device:', message.peerId, 'to:', message.peerJSId);
+            }
+            break;
+
         case 'display-name':
-            // Store server peer ID but don't use it for PeerJS
-            const serverPeerId = message.peerId;
-            console.log('Received server peer ID:', serverPeerId);
+            // Store server peer ID and device information
+            myId = message.peerId;
+            console.log('Received peer info:', {
+                id: message.peerId,
+                displayName: message.displayName,
+                deviceName: message.deviceName
+            });
 
             // Initialize PeerJS without specific ID (let it generate UUID)
             if (typeof initializePeer === 'function') {
                 initializePeer(); // No ID parameter - let PeerJS generate UUID
+            }
+            break;
+
+        case 'ping':
+            // Respond to keep-alive ping
+            if (signalingSocket && signalingSocket.readyState === WebSocket.OPEN) {
+                signalingSocket.send(JSON.stringify({ type: 'pong' }));
+            }
+            break;
+
+        // Public room message handlers
+        case 'public-room-created':
+            console.log('Public room created:', message.roomId);
+            if (typeof handlePublicRoomCreated === 'function') {
+                handlePublicRoomCreated(message.roomId);
+            }
+            break;
+
+
+
+        case 'public-room-left':
+            console.log('Public room left');
+            if (typeof handlePublicRoomLeft === 'function') {
+                handlePublicRoomLeft();
             }
             break;
 
@@ -176,23 +227,17 @@ function handleSignalingMessage(message) {
 }
 
 function updatePeersList(message) {
-    // Clear existing nearby devices
-    nearbyDevices.clear();
+    console.log('Received peers list:', message);
 
-    // Process peers from different room types
-    if (message.peers) {
-        Object.keys(message.peers).forEach(roomType => {
-            const roomPeers = message.peers[roomType];
-            if (Array.isArray(roomPeers)) {
-                roomPeers.forEach(peer => {
-                    addPeerToNearbyDevices(peer, roomType);
-                });
-            }
+    // Add peers from the message (don't clear existing ones to avoid flicker)
+    if (message.peers && Array.isArray(message.peers)) {
+        message.peers.forEach(peer => {
+            addPeerToNearbyDevices(peer, message.roomType || 'ip');
         });
     }
 
     updateDeviceGrid();
-    console.log(`Found ${nearbyDevices.size} nearby devices`);
+    console.log(`Updated peers list: ${nearbyDevices.size} devices found`);
 }
 
 function addPeerToNearbyDevices(peer, roomType) {
@@ -201,12 +246,14 @@ function addPeerToNearbyDevices(peer, roomType) {
     }
 
     const deviceInfo = {
-        name: peer.name || peer.displayName || 'Unknown Device',
-        type: peer.deviceType || peer.type || 'desktop',
-        browser: peer.browser || 'Browser',
+        name: peer.name?.displayName || peer.name?.deviceName || peer.displayName || peer.name || 'Unknown Device',
+        type: peer.name?.type || peer.deviceType || peer.type || 'desktop',
+        browser: peer.name?.browser || peer.browser || 'Browser',
+        os: peer.name?.os || peer.os || 'Unknown',
         roomType: roomType,
         lastSeen: Date.now(),
-        offline: false // Mark as online
+        offline: false, // Mark as online
+        peerJSId: peer.peerJSId || null // Store PeerJS ID if available
     };
 
     nearbyDevices.set(peer.id, deviceInfo);
@@ -322,6 +369,9 @@ function createDeviceCard(peerId, deviceInfo, isConnected = false) {
     } else if (deviceInfo.offline) {
         connectionText = 'Offline';
         statusColor = '#999';
+    } else if (!deviceInfo.peerJSId) {
+        connectionText = 'Initializing...';
+        statusColor = '#ff9800';
     } else {
         connectionText = 'Available';
         statusColor = '#666';
@@ -333,12 +383,15 @@ function createDeviceCard(peerId, deviceInfo, isConnected = false) {
     const osInfo = deviceInfo.os ? ` • ${deviceInfo.os}` : '';
     const modelInfo = deviceInfo.model && deviceInfo.model !== deviceInfo.name ? ` • ${deviceInfo.model}` : '';
 
+    // Add debug info for PeerJS ID
+    const debugInfo = deviceInfo.peerJSId ? ` • P2P Ready` : ` • P2P Pending`;
+
     status.innerHTML = `
         <div style="color: ${statusColor}; font-weight: 500; margin-bottom: 2px;">
             ${connectionText}
         </div>
         <div style="font-size: 0.8rem; color: #888; line-height: 1.2;">
-            ${browserInfo} • ${deviceTypeInfo}${osInfo}${modelInfo}
+            ${browserInfo} • ${deviceTypeInfo}${osInfo}${modelInfo}${debugInfo}
         </div>
     `;
 
@@ -353,7 +406,7 @@ function createDeviceCard(peerId, deviceInfo, isConnected = false) {
                 <mdui-icon slot="icon" name="send"></mdui-icon>
                 Send Files
             </mdui-button>
-            <mdui-button variant="filled" onclick="event.stopPropagation(); disconnectPeer('${peerId}')" style="--mdui-color-primary: #f44336; background-color: #f44336; color: white;">
+            <mdui-button variant="filled" onclick="event.stopPropagation(); console.log('Disconnect clicked for:', '${peerId}', nearbyDevices.get('${peerId}')); disconnectPeer('${peerId}')" style="--mdui-color-primary: #f44336; background-color: #f44336; color: white;">
                 <mdui-icon slot="icon" name="link_off"></mdui-icon>
                 Disconnect
             </mdui-button>
@@ -365,6 +418,15 @@ function createDeviceCard(peerId, deviceInfo, isConnected = false) {
             <mdui-button variant="outlined" disabled style="--mdui-color-primary: #999; color: #999;">
                 <mdui-icon slot="icon" name="cloud_off"></mdui-icon>
                 Offline
+            </mdui-button>
+        `;
+    } else if (!deviceInfo.peerJSId) {
+        // Device is online but PeerJS ID not available yet
+        actions.style.justifyContent = 'center';
+        actions.innerHTML = `
+            <mdui-button variant="outlined" disabled style="--mdui-color-primary: #ff9800; color: #ff9800;">
+                <mdui-icon slot="icon" name="hourglass_empty"></mdui-icon>
+                Initializing...
             </mdui-button>
         `;
     } else {
@@ -405,11 +467,25 @@ function updateDeviceGrid() {
         // Show all nearby devices with appropriate connection status
         nearbyDevices.forEach((deviceInfo, peerId) => {
             if (peerId !== myId) {
-                const isConnected = connections.has(peerId);
+                // Check if connected using PeerJS ID or fallback to WebSocket ID
+                const peerJSId = deviceInfo.peerJSId;
+                const isConnected = peerJSId ? connections.has(peerJSId) : connections.has(peerId);
                 const deviceCard = createDeviceCard(peerId, deviceInfo, isConnected);
                 deviceGrid.appendChild(deviceCard);
             }
         });
+    }
+}
+
+// WebSocket message sending function
+function sendWebSocketMessage(message) {
+    if (signalingSocket && signalingSocket.readyState === WebSocket.OPEN) {
+        signalingSocket.send(JSON.stringify(message));
+        console.log('Sent WebSocket message:', message.type);
+        return true;
+    } else {
+        console.error('WebSocket not connected, cannot send message:', message.type);
+        return false;
     }
 }
 
@@ -424,3 +500,4 @@ window.cleanupOldDevices = cleanupOldDevices;
 window.updateDiscoveryStatus = updateDiscoveryStatus;
 window.createDeviceCard = createDeviceCard;
 window.updateDeviceGrid = updateDeviceGrid;
+window.sendWebSocketMessage = sendWebSocketMessage;

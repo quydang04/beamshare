@@ -122,37 +122,38 @@ function shareRoom() {
     }
 }
 
-// Room joining functions
-function joinRoomByCode(roomCode) {
-    if (!roomCode || roomCode.length !== 5) {
-        showNotification('Invalid room code', 'error');
-        return;
-    }
 
-    if (roomCode === currentRoomCode) {
-        showNotification('You are already in this room', 'warning');
-        return;
-    }
-
-    // In a real implementation, this would connect to the room via signaling server
-    // For now, we'll simulate joining
-    currentRoomCode = roomCode;
-    updateRoomCodeDisplay();
-    showNotification(`Joined room: ${roomCode}`, 'success');
-    
-    // Request devices in this room
-    requestNearbyDevices();
-}
 
 function leaveRoom() {
     if (!currentRoomCode) return;
 
     const oldRoomCode = currentRoomCode;
-    
+
+    // Send leave request to server via WebSocket
+    if (typeof sendWebSocketMessage === 'function') {
+        sendWebSocketMessage({
+            type: 'leave-public-room'
+        });
+    }
+
     // Create new room
     createRoom();
-    
+
     showNotification(`Left room ${oldRoomCode}`, 'info');
+}
+
+function createPublicRoom() {
+    // Send create request to server via WebSocket
+    if (typeof sendWebSocketMessage === 'function') {
+        sendWebSocketMessage({
+            type: 'create-public-room'
+        });
+
+        showNotification('Creating new room...', 'info');
+    } else {
+        console.error('WebSocket not available for room creation');
+        showNotification('Connection error - cannot create room', 'error');
+    }
 }
 
 // Room member management
@@ -205,12 +206,13 @@ function clearRoomFromStorage() {
 function handleRoomFromURL() {
     const urlParams = new URLSearchParams(window.location.search);
     const roomFromUrl = urlParams.get('room');
-    
+
     if (roomFromUrl) {
         const roomCode = roomFromUrl.toUpperCase();
         if (roomCode.length === 5) {
-            joinRoomByCode(roomCode);
-            // Clean URL after joining
+            // Just show a notification that room joining is not available
+            showNotification(`Room code ${roomCode} detected in URL, but join functionality is disabled`, 'info');
+            // Clean URL
             const newUrl = window.location.pathname;
             window.history.replaceState({}, document.title, newUrl);
             return true;
@@ -219,19 +221,40 @@ function handleRoomFromURL() {
     return false;
 }
 
+// Server response handlers for public rooms
+function handlePublicRoomCreated(roomId) {
+    currentRoomCode = roomId;
+    updateRoomCodeDisplay();
+    generateQRCode();
+    generateQRCodeDialog();
+    saveRoomToStorage();
+
+    showNotification(`Room created: ${roomId}`, 'success');
+    console.log(`Successfully created public room: ${roomId}`);
+}
+
+
+
+function handlePublicRoomLeft() {
+    showNotification('Left public room', 'info');
+    console.log('Successfully left public room');
+}
+
+
+
 // Initialize room system
 function initializeRoom() {
     // Try to load room from URL first
     if (handleRoomFromURL()) {
         return;
     }
-    
+
     // Try to load saved room
     if (loadRoomFromStorage()) {
         console.log(`Restored room: ${currentRoomCode}`);
         return;
     }
-    
+
     // Create new room
     createRoom();
 }
@@ -246,8 +269,9 @@ window.refreshRoom = refreshRoom;
 window.copyRoomCode = copyRoomCode;
 window.copyRoomUrl = copyRoomUrl;
 window.shareRoom = shareRoom;
-window.joinRoomByCode = joinRoomByCode;
+
 window.leaveRoom = leaveRoom;
+window.createPublicRoom = createPublicRoom;
 window.addRoomMember = addRoomMember;
 window.removeRoomMember = removeRoomMember;
 window.updateRoomMembersList = updateRoomMembersList;
@@ -256,3 +280,7 @@ window.loadRoomFromStorage = loadRoomFromStorage;
 window.clearRoomFromStorage = clearRoomFromStorage;
 window.handleRoomFromURL = handleRoomFromURL;
 window.initializeRoom = initializeRoom;
+window.handlePublicRoomCreated = handlePublicRoomCreated;
+
+window.handlePublicRoomLeft = handlePublicRoomLeft;
+

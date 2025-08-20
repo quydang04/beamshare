@@ -1,13 +1,43 @@
 // Peer Connection Management
 // Handles PeerJS connections and peer-to-peer communication
 
-// Initialize PeerJS - let it generate UUID
+// Initialize PeerJS with fallback support
 function initializePeer() {
     updateConnectionStatus('connecting', 'Initializing...');
 
     // Let PeerJS generate UUID for better compatibility
     peer = new Peer(PEER_CONFIG);
+    setupPeerEventHandlers();
+}
 
+// Initialize PeerJS with fallback configuration
+function initializePeerWithFallback() {
+    if (peer && !peer.destroyed) {
+        peer.destroy();
+    }
+
+    updateConnectionStatus('connecting', 'Trying fallback server...');
+
+    // Use public PeerJS server as fallback
+    const fallbackConfig = {
+        host: '0.peerjs.com',
+        port: 443,
+        secure: true,
+        config: {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' }
+            ]
+        },
+        debug: 1
+    };
+
+    peer = new Peer(fallbackConfig);
+    setupPeerEventHandlers();
+}
+
+// Setup peer event handlers (extracted to avoid duplication)
+function setupPeerEventHandlers() {
     peer.on('open', (id) => {
         myId = id;
         if (myIdElement) {
@@ -57,7 +87,18 @@ function initializePeer() {
         } else if (err.type === 'network') {
             errorMessage = 'Network connection failed';
         } else if (err.type === 'server-error') {
-            errorMessage = 'Server connection failed';
+            errorMessage = 'PeerJS server connection failed - using fallback';
+            // Try to reinitialize with fallback config
+            setTimeout(() => {
+                console.log('Attempting fallback PeerJS initialization...');
+                initializePeerWithFallback();
+            }, 2000);
+        } else if (err.type === 'socket-error') {
+            errorMessage = 'Socket connection failed - retrying...';
+            setTimeout(() => {
+                console.log('Attempting fallback due to socket error...');
+                initializePeerWithFallback();
+            }, 3000);
         } else if (err.type === 'unavailable-id') {
             errorMessage = 'ID already taken, reconnecting...';
             // Try to reconnect with new ID
@@ -235,48 +276,79 @@ function connectToNearbyDevice(peerId) {
         return;
     }
 
-    if (peerId === myId) {
+    // Get device info from nearby devices
+    const deviceInfo = nearbyDevices.get(peerId);
+    if (!deviceInfo) {
+        showNotification('Device not found in nearby devices', 'error');
+        return;
+    }
+
+    // Use PeerJS ID if available, otherwise fall back to WebSocket ID
+    const targetPeerJSId = deviceInfo.peerJSId || peerId;
+    const deviceName = deviceInfo?.name || 'Unknown Device';
+
+    console.log('Connecting to device:', {
+        webSocketId: peerId,
+        peerJSId: targetPeerJSId,
+        deviceName: deviceName
+    });
+
+    if (targetPeerJSId === myId || targetPeerJSId === window.myPeerJSId) {
         showNotification('Cannot connect to yourself');
         return;
     }
 
-    if (connections.has(peerId)) {
+    if (connections.has(targetPeerJSId)) {
         showNotification('Already connected to this device');
         return;
     }
 
-    const deviceInfo = nearbyDevices.get(peerId);
-    const deviceName = deviceInfo?.name || 'Unknown Device';
+    if (!deviceInfo.peerJSId) {
+        showNotification('Device PeerJS ID not available yet, please wait...', 'warning');
+        return;
+    }
 
     showNotification(t('connectingTo', { deviceName }));
 
-    // Auto-fill manual connection field with this device ID
+    // Auto-fill manual connection field with the PeerJS ID
     const manualPeerIdInput = document.getElementById('manual-peer-id');
     if (manualPeerIdInput) {
-        manualPeerIdInput.value = peerId;
+        manualPeerIdInput.value = targetPeerJSId;
     }
 
     const currentDeviceInfo = window.deviceInfo || getDeviceInfo();
-    const conn = peer.connect(peerId, {
+    const conn = peer.connect(targetPeerJSId, {
         metadata: { deviceInfo: currentDeviceInfo }
     });
 
     // Set connection timeout
     const connectionTimeout = setTimeout(() => {
-        if (conn && !connections.has(peerId)) {
+        if (conn && !connections.has(targetPeerJSId)) {
             conn.close();
             showNotification(`Connection to ${deviceName} timed out`, 'error');
         }
     }, 10000); // 10 second timeout
 
     conn.on('open', () => {
-        console.log('Connection opened to:', peerId);
+        console.log('Connection opened to:', targetPeerJSId);
+        console.log('Current connections before adding:', Array.from(connections.keys()));
         clearTimeout(connectionTimeout); // Clear timeout on successful connection
-        connections.set(peerId, conn);
+        connections.set(targetPeerJSId, conn);
+        console.log('Current connections after adding:', Array.from(connections.keys()));
         updateDeviceGrid();
         updateConnectedDevicesList();
         updateConnectedDevicesDisplay();
         showNotification(`Connected to ${deviceName}!`, 'success');
+
+        // Add to persistent connections (always enabled)
+        if (typeof addPersistentConnection === 'function') {
+            addPersistentConnection(targetPeerJSId, deviceInfo);
+        }
+
+        // Notify persistent connection system
+        if (typeof onConnectionEstablished === 'function') {
+            onConnectionEstablished(targetPeerJSId, deviceInfo);
+        }
 
         // Send device info
         conn.send({
@@ -296,16 +368,21 @@ function connectToNearbyDevice(peerId) {
     });
 
     conn.on('close', () => {
-        console.log('Connection closed to:', peerId);
-        connections.delete(peerId);
+        console.log('Connection closed to:', targetPeerJSId);
+        connections.delete(targetPeerJSId);
         updateDeviceGrid();
         updateConnectedDevicesList();
         updateConnectedDevicesDisplay();
         showNotification(t('disconnectedFrom', { deviceName }));
+
+        // Notify persistent connection system about connection loss
+        if (typeof onConnectionLost === 'function') {
+            onConnectionLost(targetPeerJSId);
+        }
     });
 
     conn.on('error', (err) => {
-        console.error('Connection error to', peerId, ':', err);
+        console.error('Connection error to', targetPeerJSId, ':', err);
         clearTimeout(connectionTimeout); // Clear timeout on error
 
         // More detailed error handling
@@ -378,6 +455,18 @@ function connectToManualPeer() {
         manualPeerIdInput.value = '';
         showNotification('Connected successfully!', 'success');
 
+        // Add to persistent connections (always enabled)
+        if (typeof addPersistentConnection === 'function') {
+            const deviceInfo = { name: `Device ${peerId.substring(0, 8)}`, type: 'unknown' };
+            addPersistentConnection(peerId, deviceInfo);
+        }
+
+        // Notify persistent connection system
+        if (typeof onConnectionEstablished === 'function') {
+            const deviceInfo = { name: `Device ${peerId.substring(0, 8)}`, type: 'unknown' };
+            onConnectionEstablished(peerId, deviceInfo);
+        }
+
         // Send device info
         conn.send({
             type: DataType.DEVICE_INFO,
@@ -395,6 +484,11 @@ function connectToManualPeer() {
         updateConnectedDevicesList();
         updateConnectedDevicesDisplay();
         showNotification('Device disconnected');
+
+        // Notify persistent connection system about connection loss
+        if (typeof onConnectionLost === 'function') {
+            onConnectionLost(peerId);
+        }
     });
 
     conn.on('error', (err) => {
@@ -416,18 +510,49 @@ function connectToManualPeer() {
 
 function disconnectPeer(peerId) {
     console.log('Disconnecting from peer:', peerId);
-    const conn = connections.get(peerId);
-    if (conn) {
-        conn.close();
+
+    // Check if this is a WebSocket ID (from nearby devices) or PeerJS ID (from manual connection)
+    let targetPeerJSId = peerId;
+    let deviceName = 'Device';
+
+    // If this is a WebSocket ID, get the corresponding PeerJS ID
+    const deviceInfo = nearbyDevices.get(peerId);
+    if (deviceInfo && deviceInfo.peerJSId) {
+        targetPeerJSId = deviceInfo.peerJSId;
+        deviceName = deviceInfo.name || 'Device';
+        console.log('Converting WebSocket ID to PeerJS ID:', {
+            webSocketId: peerId,
+            peerJSId: targetPeerJSId,
+            deviceName: deviceName
+        });
     }
-    connections.delete(peerId);
+
+    // Try to find connection by PeerJS ID
+    const conn = connections.get(targetPeerJSId);
+    if (conn) {
+        console.log('Closing connection to:', targetPeerJSId);
+        conn.close();
+        connections.delete(targetPeerJSId);
+        showNotification(`Disconnected from ${deviceName}`, 'success');
+    } else {
+        // If not found by PeerJS ID, try the original ID (for manual connections)
+        const fallbackConn = connections.get(peerId);
+        if (fallbackConn) {
+            console.log('Closing fallback connection to:', peerId);
+            fallbackConn.close();
+            connections.delete(peerId);
+            showNotification(`Disconnected from ${deviceName}`, 'success');
+        } else {
+            console.warn('No connection found for peer:', peerId, 'or PeerJS ID:', targetPeerJSId);
+            showNotification('Device was not connected', 'warning');
+        }
+    }
 
     // Keep device in nearby devices for reconnection
     // Device will show as available again in the UI
     updateDeviceGrid();
     updateConnectedDevicesList();
     updateConnectedDevicesDisplay();
-    showNotification('Device disconnected');
 }
 
 function updateConnectedDevicesList() {
@@ -557,6 +682,7 @@ function updateConnectedDevicesDisplay() {
 
 // Export to global scope
 window.initializePeer = initializePeer;
+window.initializePeerWithFallback = initializePeerWithFallback;
 window.handleIncomingConnection = handleIncomingConnection;
 window.handleIncomingData = handleIncomingData;
 window.connectToNearbyDevice = connectToNearbyDevice;

@@ -4,422 +4,43 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BeamShare - Transfer Files Cross-Platform</title>
-
     <!-- MDUI CSS -->
     <link rel="stylesheet" href="https://unpkg.com/mdui@2/mdui.css">
-
     <!-- Material Icons -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-
-    <style>
-        :root {
-            --primary-color: #2196f3;
-            --secondary-color: #424242;
-            --background-color: #f5f5f5;
-            --surface-color: #ffffff;
-            --on-surface-color: #212121;
-            --border-radius: 12px;
-        }
-
-        /* Custom MDUI button colors */
-        mdui-button[variant="filled"] {
-            --mdui-color-primary: #2196f3;
-            background-color: #2196f3 !important;
-            color: white !important;
-        }
-
-        mdui-button[variant="outlined"] {
-            --mdui-color-primary: #2196f3;
-        }
-
-        mdui-button[variant="text"] {
-            --mdui-color-primary: #2196f3;
-        }
-
-        /* Navigation drawer styling */
-        mdui-navigation-drawer {
-            --mdui-color-surface-container: #ffffff;
-        }
-
-        mdui-list-item {
-            --mdui-color-primary: #2196f3;
-        }
-
-        /* Top app bar styling */
-        mdui-top-app-bar {
-            --mdui-color-primary: #2196f3;
-            --mdui-color-on-primary: #ffffff;
-        }
-
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            margin: 0;
-            font-family: 'Roboto', sans-serif;
-        }
-
-        .main-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        /* Layout grid */
-        .content-grid {
-            display: grid;
-            grid-template-columns: 1fr 400px;
-            gap: 24px;
-            margin-top: 20px;
-        }
-
-        .main-content {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 40px;
-            color: white;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            margin: 0;
-            font-weight: 300;
-        }
-
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            margin: 10px 0 0 0;
-        }
-
-        .device-card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: var(--border-radius);
-            padding: 24px;
-            margin: 20px 0;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
-        }
-
-        .device-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin: 20px 0;
-        }
-
-        .device-item {
-            background: white;
-            border-radius: var(--border-radius);
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            cursor: pointer;
-        }
-
-        .device-item:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-        }
-
-        .device-avatar {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            margin: 0 auto 16px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 2rem;
-        }
-
-        .device-name {
-            font-size: 1.1rem;
-            font-weight: 500;
-            margin-bottom: 8px;
-            color: var(--on-surface-color);
-        }
-
-        .device-status {
-            font-size: 0.9rem;
-            color: #666;
-            margin-bottom: 16px;
-        }
-
-        /* Device actions styling */
-        .device-item > div:last-child {
-            width: 100%;
-            min-height: 40px;
-            display: flex;
-            align-items: center;
-        }
-
-        /* Single button centering */
-        .device-item mdui-button:only-child {
-            margin: 0 auto;
-        }
-
-        .room-section {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: var(--border-radius);
-            padding: 24px;
-            margin: 20px 0;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
-        }
-
-        .room-code-display {
-            text-align: center;
-            margin: 20px 0;
-        }
-
-        .room-code {
-            font-family: 'Courier New', monospace;
-            font-size: 2rem;
-            font-weight: bold;
-            color: var(--primary-color);
-            background: #f5f5f5;
-            padding: 16px 24px;
-            border-radius: 8px;
-            display: inline-block;
-            letter-spacing: 4px;
-            margin: 10px 0;
-        }
-
-        .qr-container {
-            text-align: center;
-            margin: 20px 0;
-        }
-
-        .qr-wrapper {
-            display: inline-block;
-            background: white;
-            padding: 20px;
-            border-radius: var(--border-radius);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-        }
-
-        .file-transfer-area {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: var(--border-radius);
-            padding: 24px;
-            margin: 20px 0;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
-            text-align: center;
-        }
-
-        .drop-zone {
-            border: 2px dashed #ccc;
-            border-radius: var(--border-radius);
-            padding: 40px;
-            margin: 20px 0;
-            transition: all 0.3s ease;
-        }
-
-        .drop-zone.dragover {
-            border-color: var(--primary-color);
-            background: rgba(25, 118, 210, 0.05);
-        }
-
-        .progress-container {
-            margin: 20px 0;
-        }
-
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: white;
-            border-radius: var(--border-radius);
-            padding: 16px 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-            transform: translateX(400px);
-            transition: transform 0.3s ease;
-        }
-
-        .notification.show {
-            transform: translateX(0);
-        }
-
-        .device-item.selected {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(25, 118, 210, 0.3);
-            border: 2px solid var(--primary-color);
-        }
-
-        .drop-zone.dragover {
-            border-color: var(--primary-color);
-            background: rgba(25, 118, 210, 0.05);
-            transform: scale(1.02);
-        }
-
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;
-        }
-
-        /* Animation for device cards */
-        .device-item {
-            animation: slideInUp 0.3s ease-out;
-        }
-
-        @keyframes slideInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Pulse animation for connection status */
-        @keyframes pulse {
-            0% {
-                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
-            }
-            70% {
-                box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
-            }
-            100% {
-                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
-            }
-        }
-
-        .status-connected {
-            animation: pulse 2s infinite;
-        }
-
-        /* Improved button styles */
-        mdui-button[variant="filled"] {
-            --mdui-color-primary: #2196f3;
-            background-color: #2196f3 !important;
-            color: white !important;
-        }
-
-        mdui-button[variant="outlined"] {
-            --mdui-color-primary: #1976d2;
-        }
-
-        /* File list improvements */
-        #file-list > div {
-            transition: all 0.2s ease;
-        }
-
-        #file-list > div:hover {
-            background: #e3f2fd !important;
-            transform: translateX(4px);
-        }
-
-        /* Connected device styling */
-        .connected-device-item {
-            border: 2px solid #4caf50 !important;
-            background: linear-gradient(135deg, #e8f5e8 0%, #f1f8e9 100%) !important;
-        }
-
-        .connected-device-item .device-avatar {
-            border: 3px solid #4caf50 !important;
-            box-shadow: 0 0 10px rgba(76, 175, 80, 0.3) !important;
-            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%) !important;
-        }
-
-        /* Nearby device hover effect */
-        .device-item:not(.connected-device-item):hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(33, 150, 243, 0.2);
-            border: 2px solid #2196f3;
-        }
-
-        /* Connected devices counter */
-        #connected-count {
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-
-        /* Responsive design */
-        @media (max-width: 1024px) {
-            .content-grid {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-
-            .sidebar {
-                order: -1; /* Move sidebar to top on mobile */
-            }
-        }
-
-        @media (max-width: 768px) {
-            .main-container {
-                padding: 10px;
-            }
-
-            .header h1 {
-                font-size: 2rem;
-            }
-
-            .device-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .room-code {
-                font-size: 1.5rem;
-                letter-spacing: 2px;
-            }
-
-            .device-card {
-                padding: 16px;
-            }
-
-            .room-section > div:first-of-type {
-                grid-template-columns: 1fr !important;
-                gap: 20px;
-            }
-        }
-
-
-
-
-    </style>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
     <!-- MDUI App Bar -->
     <mdui-top-app-bar>
-        <mdui-button-icon icon="menu" id="menu-btn"></mdui-button-icon>
+        <!-- Mobile menu button (hidden on desktop) -->
+        <mdui-button-icon icon="menu" id="menu-btn" class="mobile-only"></mdui-button-icon>
         <mdui-top-app-bar-title>BeamShare</mdui-top-app-bar-title>
         <div style="flex-grow: 1"></div>
-        <mdui-button-icon icon="meeting_room" id="room-btn" title="Your Room"></mdui-button-icon>
-        <mdui-button-icon icon="language" id="language-btn"></mdui-button-icon>
-        <mdui-button-icon icon="settings" id="settings-btn"></mdui-button-icon>
+
+        <!-- Desktop navigation buttons (hidden on mobile) -->
+        <div class="desktop-nav">
+            <mdui-button variant="text" onclick="scrollToSection('devices')">
+                <mdui-icon slot="icon" name="devices"></mdui-icon>
+                Nearby Devices
+            </mdui-button>
+            <mdui-button variant="text" onclick="scrollToSection('file-transfer')">
+                <mdui-icon slot="icon" name="file_upload"></mdui-icon>
+                Send Files
+            </mdui-button>
+
+            <mdui-button variant="text" onclick="document.getElementById('your-room-dialog').open = true">
+                <mdui-icon slot="icon" name="meeting_room"></mdui-icon>
+                Your Room
+            </mdui-button>
+
+            <mdui-divider orientation="vertical"></mdui-divider>
+
+            <mdui-button-icon icon="language" onclick="document.getElementById('language-dialog').open = true" title="Language"></mdui-button-icon>
+            <mdui-button-icon icon="settings" onclick="document.getElementById('settings-dialog').open = true" title="Settings"></mdui-button-icon>
+            <mdui-button-icon icon="help" onclick="openHelpDialog()" title="Help"></mdui-button-icon>
+        </div>
     </mdui-top-app-bar>
 
     <!-- Navigation Drawer Menu -->
@@ -428,14 +49,17 @@
             <mdui-list-item icon="home" onclick="scrollToSection('home')">
                 Home
             </mdui-list-item>
-            <mdui-list-item icon="meeting_room" onclick="openJoinRoomDialog()">
-                Join Room
-            </mdui-list-item>
+            <mdui-divider></mdui-divider>
             <mdui-list-item icon="devices" onclick="scrollToSection('devices')">
                 Nearby Devices
             </mdui-list-item>
             <mdui-list-item icon="file_upload" onclick="scrollToSection('file-transfer')">
                 Send Files
+            </mdui-list-item>
+            <mdui-divider></mdui-divider>
+
+            <mdui-list-item icon="meeting_room" onclick="document.getElementById('your-room-dialog').open = true">
+                Your Room
             </mdui-list-item>
             <mdui-divider></mdui-divider>
             <mdui-list-item icon="settings" onclick="document.getElementById('settings-dialog').open = true">
@@ -486,10 +110,10 @@
 
                     <div class="drop-zone" id="drop-zone">
                         <mdui-icon name="cloud_upload" style="font-size: 3rem; color: #ccc; margin-bottom: 16px;"></mdui-icon>
-                        <div style="font-size: 1.2rem; margin-bottom: 8px;">Drop files here or click to select</div>
-                        <div style="color: #666; font-size: 0.9rem;">Support any file type</div>
+                        <div style="font-size: 1.2rem; margin-bottom: 8px;" data-lang="dropFilesHere">Drop files here or click to select</div>
+                        <div style="color: #666; font-size: 0.9rem;" data-lang="supportAnyFileType">Support any file type</div>
                         <input type="file" id="file-input" multiple style="display: none;">
-                        <mdui-button variant="outlined" style="margin-top: 16px; --mdui-color-primary: #2196f3;" id="select-files-btn">
+                        <mdui-button variant="outlined" style="margin-top: 16px; --mdui-color-primary: #2196f3;" id="select-files-btn" data-lang="selectFiles">
                             <mdui-icon slot="icon" name="attach_file"></mdui-icon>
                             Select Files
                         </mdui-button>
@@ -514,7 +138,10 @@
                             label="Device ID"
                             placeholder="Enter device ID to connect"
                             style="flex: 1;"
-                            helper="Enter the Device ID from another device to connect directly">
+                            helper="Enter the Device ID from another device to connect directly"
+                            data-lang-label="deviceId"
+                            data-lang-placeholder="enterDeviceId"
+                            data-lang-helper="enterDeviceIdHelper">
                         </mdui-text-field>
                         <mdui-button variant="filled" onclick="connectToManualPeer()" style="--mdui-color-primary: #2196f3; background-color: #2196f3; color: white;">
                             <mdui-icon slot="icon" name="connect_without_contact"></mdui-icon>
@@ -550,8 +177,8 @@
                     </div>
                     <div id="no-devices" style="text-align: center; padding: 40px; color: #666;">
                         <mdui-icon name="search" style="font-size: 3rem; opacity: 0.5; margin-bottom: 16px;"></mdui-icon>
-                        <div id="discovery-status">Looking for nearby devices...</div>
-                        <div style="font-size: 0.9rem; margin-top: 8px;">Make sure you're on the same network</div>
+                        <div id="discovery-status" data-lang="lookingForDevices">Looking for nearby devices...</div>
+                        <div style="font-size: 0.9rem; margin-top: 8px;" data-lang="makeSureSameNetwork">Make sure you're on the same network</div>
                         <mdui-linear-progress id="discovery-progress" style="margin-top: 16px; width: 200px; margin-left: auto; margin-right: auto;"></mdui-linear-progress>
                     </div>
                 </mdui-card>
@@ -604,63 +231,42 @@
         <mdui-button slot="action" variant="filled" onclick="document.getElementById('your-room-dialog').open = false" style="--mdui-color-primary: #2196f3; background-color: #2196f3; color: white;">Close</mdui-button>
     </mdui-dialog>
 
-    <!-- Join Room dialog -->
-    <mdui-dialog id="join-room-dialog" headline="Join Room">
-        <div style="padding: 0 24px;">
-            <div style="margin-bottom: 16px;">
-                <mdui-text-field
-                    id="join-room-code-dialog"
-                    label="Room Code"
-                    placeholder="Enter 5-character room code"
-                    maxlength="5"
-                    style="width: 100%; text-transform: uppercase; text-align: center; font-family: monospace;">
-                </mdui-text-field>
-            </div>
-            <div style="margin-bottom: 16px; color: #666; font-size: 0.9rem;">
-                Enter the room code shared by another device to join their room.
-            </div>
-        </div>
-        <mdui-button slot="action" variant="text" onclick="document.getElementById('join-room-dialog').open = false">Cancel</mdui-button>
-        <mdui-button slot="action" variant="filled" onclick="joinRoomFromDialog()" style="--mdui-color-primary: #2196f3; background-color: #2196f3; color: white;">
-            <mdui-icon slot="icon" name="login"></mdui-icon>
-            Join Room
-        </mdui-button>
-    </mdui-dialog>
+
 
     <!-- Help dialog -->
     <mdui-dialog id="help-dialog" headline="How to Use BeamShare">
         <div style="padding: 0 24px; max-height: 400px; overflow-y: auto;">
             <div style="margin-bottom: 20px;">
-                <h4 style="margin: 0 0 8px 0; color: #2196f3;">🔍 Nearby Devices</h4>
-                <p style="margin: 0; font-size: 0.9rem; color: #666;">
+                <h4 style="margin: 0 0 8px 0; color: #2196f3;" data-lang="helpNearbyDevices">🔍 Nearby Devices</h4>
+                <p style="margin: 0; font-size: 0.9rem; color: #666;" data-lang="helpNearbyDevicesDesc">
                     Devices on the same network will automatically appear. Click "Connect" to establish a connection.
                 </p>
             </div>
 
             <div style="margin-bottom: 20px;">
-                <h4 style="margin: 0 0 8px 0; color: #2196f3;">🏠 Room Sharing</h4>
-                <p style="margin: 0; font-size: 0.9rem; color: #666;">
+                <h4 style="margin: 0 0 8px 0; color: #2196f3;" data-lang="helpRoomSharing">🏠 Room Sharing</h4>
+                <p style="margin: 0; font-size: 0.9rem; color: #666;" data-lang="helpRoomSharingDesc">
                     Share your room code or QR code with others to let them join your room from anywhere.
                 </p>
             </div>
 
             <div style="margin-bottom: 20px;">
-                <h4 style="margin: 0 0 8px 0; color: #2196f3;">📁 File Transfer</h4>
-                <p style="margin: 0; font-size: 0.9rem; color: #666;">
+                <h4 style="margin: 0 0 8px 0; color: #2196f3;" data-lang="helpFileTransfer">📁 File Transfer</h4>
+                <p style="margin: 0; font-size: 0.9rem; color: #666;" data-lang="helpFileTransferDesc">
                     Drag & drop files or click "Select Files" to choose files. Then click on a connected device to send.
                 </p>
             </div>
 
             <div style="margin-bottom: 20px;">
-                <h4 style="margin: 0 0 8px 0; color: #2196f3;">🔗 Manual Connection</h4>
-                <p style="margin: 0; font-size: 0.9rem; color: #666;">
+                <h4 style="margin: 0 0 8px 0; color: #2196f3;" data-lang="helpManualConnection">🔗 Manual Connection</h4>
+                <p style="margin: 0; font-size: 0.9rem; color: #666;" data-lang="helpManualConnectionDesc">
                     If automatic discovery doesn't work, you can manually enter a device ID to connect.
                 </p>
             </div>
 
             <div style="margin-bottom: 20px;">
-                <h4 style="margin: 0 0 8px 0; color: #2196f3;">🔒 Privacy & Security</h4>
-                <p style="margin: 0; font-size: 0.9rem; color: #666;">
+                <h4 style="margin: 0 0 8px 0; color: #2196f3;" data-lang="helpPrivacySecurity">🔒 Privacy & Security</h4>
+                <p style="margin: 0; font-size: 0.9rem; color: #666;" data-lang="helpPrivacySecurityDesc">
                     All transfers are peer-to-peer and encrypted. No files are stored on our servers.
                 </p>
             </div>
@@ -691,6 +297,10 @@
                     Play different sounds for success, warning, and error notifications.
                 </div>
             </div>
+
+
+
+
         </div>
         <mdui-button slot="action" variant="text" onclick="document.getElementById('settings-dialog').open = false">Cancel</mdui-button>
         <mdui-button slot="action" variant="filled" onclick="saveSettings()" style="--mdui-color-primary: #2196f3; background-color: #2196f3; color: white;">Save</mdui-button>
@@ -723,6 +333,7 @@
     <script src="js/translations.js"></script>
     <script src="js/dom-elements.js"></script>
     <script src="js/utils.js"></script>
+    <script src="js/persistent-connection.js"></script>
     <script src="js/device-discovery.js"></script>
     <script src="js/peer-connection.js"></script>
     <script src="js/file-transfer.js"></script>

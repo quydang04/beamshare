@@ -209,9 +209,14 @@ function getSystemInfo() {
     const deviceInfo = getDetailedDeviceInfo();
     const browserInfo = getBrowserInfo();
 
+    // Generate a friendly display name like PairDrop
+    const displayName = generateDisplayName();
+
     return {
         deviceName: deviceInfo.name,
+        displayName: displayName,
         deviceType: deviceInfo.type,
+        type: deviceInfo.type,
         os: deviceInfo.os,
         osVersion: deviceInfo.osVersion,
         browser: browserInfo,
@@ -235,6 +240,31 @@ function getSystemInfo() {
     };
 }
 
+// Generate a friendly display name like PairDrop (Color + Animal)
+function generateDisplayName() {
+    const colors = [
+        'Red', 'Blue', 'Green', 'Yellow', 'Purple', 'Orange', 'Pink', 'Cyan',
+        'Magenta', 'Lime', 'Indigo', 'Violet', 'Turquoise', 'Gold', 'Silver', 'Coral'
+    ];
+
+    const animals = [
+        'Cat', 'Dog', 'Lion', 'Tiger', 'Bear', 'Wolf', 'Fox', 'Rabbit',
+        'Eagle', 'Dolphin', 'Elephant', 'Giraffe', 'Panda', 'Koala', 'Penguin', 'Owl'
+    ];
+
+    // Use a combination of user agent and current time for randomness
+    // but make it somewhat consistent for the same browser session
+    const seed = (navigator.userAgent + navigator.language).split('').reduce((a, b) => {
+        a = ((a << 5) - a) + b.charCodeAt(0);
+        return a & a;
+    }, 0);
+
+    const colorIndex = Math.abs(seed) % colors.length;
+    const animalIndex = Math.abs(Math.floor(seed / colors.length)) % animals.length;
+
+    return `${colors[colorIndex]} ${animals[animalIndex]}`;
+}
+
 // Room code generation
 function generateRoomCode() {
     return Math.random().toString(36).substring(2, 7).toUpperCase();
@@ -242,16 +272,35 @@ function generateRoomCode() {
 
 // Notification functions
 function showNotification(message, type = 'info') {
-    notificationSnackbar.innerHTML = message;
-    notificationSnackbar.open = true;
+    try {
+        // Check if notificationSnackbar exists
+        if (!window.notificationSnackbar) {
+            window.notificationSnackbar = document.getElementById('notification-snackbar');
+        }
 
-    // Play sound if enabled
-    playNotificationSound(type);
+        if (!window.notificationSnackbar) {
+            console.warn('notification-snackbar element not found, using alert fallback');
+            alert(message); // Fallback to alert
+            return;
+        }
 
-    // Auto close after 3 seconds
-    setTimeout(() => {
-        notificationSnackbar.open = false;
-    }, 3000);
+        window.notificationSnackbar.innerHTML = message;
+        window.notificationSnackbar.open = true;
+
+        // Play sound if enabled
+        playNotificationSound(type);
+
+        // Auto close after 3 seconds
+        setTimeout(() => {
+            if (window.notificationSnackbar) {
+                window.notificationSnackbar.open = false;
+            }
+        }, 3000);
+
+    } catch (error) {
+        console.error('Error in showNotification:', error);
+        alert(message); // Fallback to alert
+    }
 }
 
 function playNotificationSound(type = 'info') {
@@ -341,6 +390,7 @@ window.getDeviceType = getDeviceType;
 window.getBrowserInfo = getBrowserInfo;
 window.getDetailedDeviceInfo = getDetailedDeviceInfo;
 window.getSystemInfo = getSystemInfo;
+window.generateDisplayName = generateDisplayName;
 window.generateRoomCode = generateRoomCode;
 window.showNotification = showNotification;
 window.playNotificationSound = playNotificationSound;
