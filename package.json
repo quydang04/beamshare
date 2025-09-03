@@ -1,17 +1,23 @@
 {
-  "name": "simple-airdrop",
+  "name": "beamshare-java",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "P2P File Transfer - Converted to Java Spring Boot",
+  "main": "DEPRECATED - Now using Java Spring Boot (see pom.xml)",
   "scripts": {
-    "start": "node server/server.js",
-    "dev": "npm start",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "echo 'This is now a Java project. Use: mvn spring-boot:run'",
+    "dev": "echo 'This is now a Java project. Use: mvn spring-boot:run'",
+    "test": "echo 'This is now a Java project. Use: mvn test'",
+    "java:start": "mvn spring-boot:run",
+    "java:build": "mvn clean package",
+    "java:test": "mvn test"
   },
-  "keywords": [],
+  "keywords": ["java", "spring-boot", "p2p", "file-transfer", "webrtc", "websocket"],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "type": "module",
+  "note": "This project has been successfully converted from Node.js to Java Spring Boot. See README-JAVA.md for details.",
   "dependencies": {
+    "DEPRECATED": "Dependencies are now managed by Maven (see pom.xml)",
     "@zip.js/zip.js": "^2.7.72",
     "express": "^5.1.0",
     "nosleep.js": "^0.12.0",
@@ -19,6 +25,5 @@
     "ua-parser-js": "^2.0.4",
     "unique-names-generator": "^4.7.1",
     "ws": "^8.18.3"
-  },
-  "type": "module"
+  }
 }
