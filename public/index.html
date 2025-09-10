@@ -3,20 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BeamShare - Transfer Files Cross-Platform</title>
+    <title>VieCloud Share - Transfer Files Cross-Platform</title>
     <!-- MDUI CSS -->
     <link rel="stylesheet" href="https://unpkg.com/mdui@2/mdui.css">
     <!-- Material Icons -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/qr-scanner.css">
 </head>
 <body>
     <!-- MDUI App Bar -->
     <mdui-top-app-bar>
         <!-- Mobile menu button (hidden on desktop) -->
         <mdui-button-icon icon="menu" id="menu-btn" class="mobile-only"></mdui-button-icon>
-        <mdui-top-app-bar-title>BeamShare</mdui-top-app-bar-title>
+        <mdui-top-app-bar-title>VieCloud Share</mdui-top-app-bar-title>
         <div style="flex-grow: 1"></div>
 
         <!-- Desktop navigation buttons (hidden on mobile) -->
@@ -33,6 +34,11 @@
             <mdui-button variant="text" onclick="document.getElementById('your-room-dialog').open = true">
                 <mdui-icon slot="icon" name="meeting_room"></mdui-icon>
                 Your Room
+            </mdui-button>
+
+            <mdui-button variant="text" onclick="openJoinRoomDialog()">
+                <mdui-icon slot="icon" name="login"></mdui-icon>
+                Join Room
             </mdui-button>
 
             <mdui-divider orientation="vertical"></mdui-divider>
@@ -61,6 +67,9 @@
             <mdui-list-item icon="meeting_room" onclick="document.getElementById('your-room-dialog').open = true">
                 Your Room
             </mdui-list-item>
+            <mdui-list-item icon="login" onclick="openJoinRoomDialog()">
+                Join Room
+            </mdui-list-item>
             <mdui-divider></mdui-divider>
             <mdui-list-item icon="settings" onclick="document.getElementById('settings-dialog').open = true">
                 Settings
@@ -84,7 +93,6 @@
         <div class="content-grid">
             <!-- Main Content (Left Column) -->
             <div class="main-content">
-                <!-- Your Device Card -->
                 <mdui-card class="device-card">
                     <div style="display: flex; align-items: center; gap: 16px;">
                         <mdui-icon name="devices" style="font-size: 2rem; color: var(--primary-color);"></mdui-icon>
@@ -194,6 +202,54 @@
         <mdui-button slot="action" variant="filled" id="accept-file-btn" style="--mdui-color-primary: #2196f3; background-color: #2196f3; color: white;">Accept</mdui-button>
     </mdui-dialog>
 
+    <!-- Join Room dialog -->
+    <mdui-dialog id="join-room-dialog" headline="Join Room">
+        <div style="padding: 0 24px;">
+            <!-- Manual entry section -->
+            <div style="text-align: center; margin-bottom: 24px;">
+                <div style="margin-bottom: 16px;">
+                    <mdui-text-field
+                        id="join-room-code-dialog"
+                        label="Room Code"
+                        placeholder="Enter 5-digit room code"
+                        maxlength="5"
+                        style="width: 200px;"
+                        data-lang-label="roomCode"
+                        data-lang-placeholder="enterRoomCode">
+                    </mdui-text-field>
+                </div>
+                <mdui-button variant="filled" id="join-room-btn-dialog" style="--mdui-color-primary: #2196f3; background-color: #2196f3; color: white;">
+                    <mdui-icon slot="icon" name="meeting_room"></mdui-icon>
+                    Join Room
+                </mdui-button>
+            </div>
+
+            <mdui-divider style="margin: 24px 0;"></mdui-divider>
+
+            <!-- QR Scanner section -->
+            <div style="text-align: center;">
+                <div style="margin-bottom: 16px; color: #666;">
+                    <mdui-icon name="qr_code_scanner" style="font-size: 2rem; margin-bottom: 8px; display: block;"></mdui-icon>
+                    Scan QR code to join instantly
+                </div>
+                <mdui-button variant="outlined" onclick="openQRScanner()" style="--mdui-color-primary: #2196f3;">
+                    <mdui-icon slot="icon" name="qr_code_scanner"></mdui-icon>
+                    Open Camera Scanner
+                </mdui-button>
+            </div>
+
+            <div style="background: #e3f2fd; padding: 16px; border-radius: 8px; margin-top: 24px;">
+                <div style="font-weight: 500; margin-bottom: 8px; color: #1976d2;">💡 How to join a room:</div>
+                <ul style="margin: 0; padding-left: 20px; color: #666; font-size: 0.9rem;">
+                    <li>Enter the 5-digit room code manually</li>
+                    <li>Scan the QR code with camera</li>
+                    <li>Ask the room creator to share the code</li>
+                </ul>
+            </div>
+        </div>
+        <mdui-button slot="action" variant="text" onclick="document.getElementById('join-room-dialog').open = false">Cancel</mdui-button>
+    </mdui-dialog>
+
     <!-- Your Room dialog -->
     <mdui-dialog id="your-room-dialog" headline="Your Room">
         <div style="padding: 0 24px;">
@@ -234,7 +290,7 @@
 
 
     <!-- Help dialog -->
-    <mdui-dialog id="help-dialog" headline="How to Use BeamShare">
+    <mdui-dialog id="help-dialog" headline="How to Use VieCloud Share">
         <div style="padding: 0 24px; max-height: 400px; overflow-y: auto;">
             <div style="margin-bottom: 20px;">
                 <h4 style="margin: 0 0 8px 0; color: #2196f3;" data-lang="helpNearbyDevices">🔍 Nearby Devices</h4>
@@ -328,11 +384,13 @@
     <script src="https://unpkg.com/mdui@2/mdui.global.js"></script>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <!-- Core modules -->
     <script src="js/config.js"></script>
     <script src="js/translations.js"></script>
     <script src="js/dom-elements.js"></script>
     <script src="js/utils.js"></script>
+    <script src="js/qr-scanner.js"></script>
     <script src="js/persistent-connection.js"></script>
     <script src="js/device-discovery.js"></script>
     <script src="js/peer-connection.js"></script>

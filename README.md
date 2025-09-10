@@ -1,4 +1,4 @@
-# Beamshare - P2P File Transfer
+# VieCloud Share - P2P File Transfer
 
 Ứng dụng chia sẻ file P2P
 

@@ -4,7 +4,7 @@
 
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 BeamShare initializing...');
+    console.log('🚀 VieCloud Share initializing...');
 
     // Initialize device info after utils.js is loaded
     if (typeof getSystemInfo === 'function') {
@@ -24,6 +24,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Load saved language first
     loadSavedLanguage();
+
+    // Initialize QR Scanner
+    if (typeof initializeQRScanner === 'function') {
+        initializeQRScanner();
+    }
 
     // Start device discovery first to get peer ID from server
     // PeerJS will be initialized after receiving peer ID from signaling server
@@ -59,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Setup cleanup on page unload
     setupCleanup();
 
-    console.log('✅ BeamShare initialized successfully');
+    console.log('✅ VieCloud Share initialized successfully');
 });
 
 // Load saved settings from localStorage

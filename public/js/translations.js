@@ -8,7 +8,7 @@ let currentLanguage = 'vi';
 const translations = {
     en: {
         // App title and navigation
-        appTitle: 'BeamShare',
+    appTitle: 'VieCloud Share',
         home: 'Home',
         devices: 'Devices',
         fileTransfer: 'File Transfer',
@@ -99,10 +99,10 @@ const translations = {
         from: 'from',
 
         // Help and about
-        aboutTitle: 'About BeamShare',
+    aboutTitle: 'About VieCloud Share',
         aboutDescription: 'Secure peer-to-peer file sharing in your browser',
         howToUse: 'How to use',
-        step1: '1. Open BeamShare on another device',
+    step1: '1. Open VieCloud Share on another device',
         step2: '2. Devices will automatically discover each other',
         step3: '3. Select files and click on a device to send',
         step4: '4. Accept the transfer on the receiving device',
@@ -148,7 +148,7 @@ const translations = {
         makeSureSameNetwork: 'Make sure you\'re on the same network',
         transferFilesCrossPlatform: 'Transfer Files Cross-Platform',
         noSetupNoSignup: 'No Setup, No Signup.',
-        howToUsePairDrop: 'How to Use BeamShare',
+    howToUsePairDrop: 'How to Use VieCloud Share',
         nearbyDevicesHelp: '🔍 Nearby Devices',
         nearbyDevicesDesc: 'Devices on the same network will automatically appear. Click "Connect" to establish a connection.',
         roomSharingHelp: '🏠 Room Sharing',
@@ -168,7 +168,7 @@ const translations = {
     },
     vi: {
         // App title and navigation
-        appTitle: 'BeamShare',
+    appTitle: 'VieCloud Share',
         home: 'Trang chủ',
         devices: 'Thiết bị',
         fileTransfer: 'Truyền tệp',
@@ -259,10 +259,10 @@ const translations = {
         from: 'từ',
 
         // Help and about
-        aboutTitle: 'Về BeamShare',
+    aboutTitle: 'Về VieCloud Share',
         aboutDescription: 'Chia sẻ tệp ngang hàng an toàn trong trình duyệt của bạn',
         howToUse: 'Cách sử dụng',
-        step1: '1. Mở BeamShare trên thiết bị khác',
+    step1: '1. Mở VieCloud Share trên thiết bị khác',
         step2: '2. Các thiết bị sẽ tự động khám phá lẫn nhau',
         step3: '3. Chọn tệp và nhấp vào thiết bị để gửi',
         step4: '4. Chấp nhận chuyển tệp trên thiết bị nhận',
@@ -308,7 +308,7 @@ const translations = {
         makeSureSameNetwork: 'Đảm bảo bạn đang ở cùng mạng',
         transferFilesCrossPlatform: 'Truyền Tệp Đa Nền Tảng',
         noSetupNoSignup: 'Không cần cài đặt, không cần đăng ký.',
-        howToUsePairDrop: 'Cách sử dụng BeamShare',
+    howToUsePairDrop: 'Cách sử dụng VieCloud Share',
         nearbyDevicesHelp: '🔍 Thiết bị gần đây',
         nearbyDevicesDesc: 'Các thiết bị trên cùng mạng sẽ tự động xuất hiện. Nhấp "Kết nối" để thiết lập kết nối.',
         roomSharingHelp: '🏠 Chia sẻ phòng',

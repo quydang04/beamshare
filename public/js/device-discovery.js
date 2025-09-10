@@ -209,7 +209,12 @@ function handleSignalingMessage(message) {
             }
             break;
 
-
+        case 'public-room-joined':
+            console.log('Public room joined:', message.roomId, 'members:', message.members);
+            if (typeof handlePublicRoomJoined === 'function') {
+                handlePublicRoomJoined(message.roomId, message.members);
+            }
+            break;
 
         case 'public-room-left':
             console.log('Public room left');
@@ -334,11 +339,15 @@ function createDeviceCard(peerId, deviceInfo, isConnected = false) {
     deviceCard.className = 'device-item';
     deviceCard.dataset.peerId = peerId;
 
-    // Different styling for connected vs nearby devices
+    // Different styling for connected vs nearby devices vs room members
     if (isConnected) {
         deviceCard.style.border = '2px solid #4caf50';
         deviceCard.style.background = 'linear-gradient(135deg, #e8f5e8 0%, #f1f8e9 100%)';
         deviceCard.classList.add('connected-device-item');
+    } else if (deviceInfo.isRoomMember) {
+        deviceCard.style.border = '2px solid #2196f3';
+        deviceCard.style.background = 'linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%)';
+        deviceCard.classList.add('room-member-item');
     }
 
     const avatar = document.createElement('div');
@@ -353,6 +362,10 @@ function createDeviceCard(peerId, deviceInfo, isConnected = false) {
         avatar.style.border = '3px solid #4caf50';
         avatar.style.boxShadow = '0 0 10px rgba(76, 175, 80, 0.3)';
         avatar.style.background = 'linear-gradient(135deg, #4caf50 0%, #45a049 100%)';
+    } else if (deviceInfo.isRoomMember) {
+        avatar.style.border = '3px solid #2196f3';
+        avatar.style.boxShadow = '0 0 10px rgba(33, 150, 243, 0.3)';
+        avatar.style.background = 'linear-gradient(135deg, #2196f3 0%, #1976d2 100%)';
     }
 
     const name = document.createElement('div');
@@ -366,6 +379,9 @@ function createDeviceCard(peerId, deviceInfo, isConnected = false) {
     if (isConnected) {
         connectionText = 'Connected';
         statusColor = '#4caf50';
+    } else if (deviceInfo.isRoomMember) {
+        connectionText = 'Room Member';
+        statusColor = '#2196f3';
     } else if (deviceInfo.offline) {
         connectionText = 'Offline';
         statusColor = '#999';
@@ -385,13 +401,16 @@ function createDeviceCard(peerId, deviceInfo, isConnected = false) {
 
     // Add debug info for PeerJS ID
     const debugInfo = deviceInfo.peerJSId ? ` • P2P Ready` : ` • P2P Pending`;
+    
+    // Add room indicator
+    const roomInfo = deviceInfo.isRoomMember ? ` • In Room` : '';
 
     status.innerHTML = `
         <div style="color: ${statusColor}; font-weight: 500; margin-bottom: 2px;">
             ${connectionText}
         </div>
         <div style="font-size: 0.8rem; color: #888; line-height: 1.2;">
-            ${browserInfo} • ${deviceTypeInfo}${osInfo}${modelInfo}${debugInfo}
+            ${browserInfo} • ${deviceTypeInfo}${osInfo}${modelInfo}${debugInfo}${roomInfo}
         </div>
     `;
 
@@ -430,12 +449,14 @@ function createDeviceCard(peerId, deviceInfo, isConnected = false) {
             </mdui-button>
         `;
     } else {
-        // Center the connect button
+        // Center the connect button with special styling for room members
         actions.style.justifyContent = 'center';
+        const buttonColor = deviceInfo.isRoomMember ? '#2196f3' : '#2196f3';
+        const buttonText = deviceInfo.isRoomMember ? 'Connect to Room Member' : 'Connect';
         actions.innerHTML = `
-            <mdui-button variant="filled" onclick="event.stopPropagation(); connectToNearbyDevice('${peerId}')" style="--mdui-color-primary: #2196f3; background-color: #2196f3; color: white;">
+            <mdui-button variant="filled" onclick="event.stopPropagation(); connectToNearbyDevice('${peerId}')" style="--mdui-color-primary: ${buttonColor}; background-color: ${buttonColor}; color: white;">
                 <mdui-icon slot="icon" name="link"></mdui-icon>
-                Connect
+                ${buttonText}
             </mdui-button>
         `;
     }

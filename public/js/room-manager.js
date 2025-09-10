@@ -1,3 +1,46 @@
+// Join a room by code
+function joinRoomByCode(roomCode) {
+    if (!roomCode || roomCode.length !== 5) {
+        showNotification('Please enter a valid 5-character room code', 'warning');
+        return;
+    }
+    
+    roomCode = roomCode.toUpperCase();
+    
+    // Check if already in this room
+    if (currentRoomCode === roomCode) {
+        showNotification(`Already in room: ${currentRoomCode}`, 'info');
+        return;
+    }
+    
+    // Leave current room if in one
+    if (currentRoomCode && typeof sendWebSocketMessage === 'function') {
+        sendWebSocketMessage({
+            type: 'leave-public-room'
+        });
+    }
+    
+    currentRoomCode = roomCode;
+    updateRoomCodeDisplay();
+    generateQRCode();
+    generateQRCodeDialog();
+    saveRoomToStorage();
+    
+    // Join the public room on server
+    if (typeof sendWebSocketMessage === 'function') {
+        sendWebSocketMessage({
+            type: 'join-public-room',
+            roomCode: currentRoomCode
+        });
+        console.log('Joining public room:', currentRoomCode);
+        showNotification(`Joining room: ${currentRoomCode}...`, 'info');
+    } else {
+        console.warn('WebSocket not available, room join limited to QR/URL sharing');
+        showNotification(`Room code set to: ${currentRoomCode}`, 'success');
+    }
+}
+
+window.joinRoomByCode = joinRoomByCode;
 // Room Management System
 // Handles room codes, QR code generation, and room functionality
 
@@ -233,6 +276,89 @@ function handlePublicRoomCreated(roomId) {
     console.log(`Successfully created public room: ${roomId}`);
 }
 
+function handlePublicRoomJoined(roomId, members) {
+    currentRoomCode = roomId;
+    updateRoomCodeDisplay();
+    generateQRCode();
+    generateQRCodeDialog();
+    saveRoomToStorage();
+
+    // Clear existing room members
+    roomMembers.clear();
+    
+    // Add all room members to nearby devices
+    if (members && Array.isArray(members)) {
+        members.forEach(member => {
+            if (member.id !== myId) {
+                addRoomMemberToNearbyDevices(member);
+                roomMembers.add(member.id);
+            }
+        });
+        
+        // Update the nearby devices display
+        if (typeof updateDeviceGrid === 'function') {
+            updateDeviceGrid();
+        }
+        
+        console.log(`Added ${members.length - 1} room members to nearby devices`);
+    }
+
+    showNotification(`Joined room: ${roomId} with ${roomMembers.size} members`, 'success');
+    console.log(`Successfully joined public room: ${roomId}`);
+}
+
+function handlePublicRoomLeft() {
+    const oldRoomCode = currentRoomCode;
+    
+    // Clear room members from nearby devices
+    roomMembers.forEach(memberId => {
+        if (typeof nearbyDevices !== 'undefined') {
+            nearbyDevices.delete(memberId);
+        }
+    });
+    roomMembers.clear();
+    
+    // Create new room
+    createRoom();
+    
+    // Update the nearby devices display
+    if (typeof updateDeviceGrid === 'function') {
+        updateDeviceGrid();
+    }
+
+    showNotification(`Left room ${oldRoomCode}`, 'info');
+    console.log('Successfully left public room');
+}
+
+// Add room member to nearby devices
+function addRoomMemberToNearbyDevices(member) {
+    if (!member || !member.id || member.id === myId) {
+        return;
+    }
+
+    const deviceInfo = {
+        name: member.name?.displayName || member.name?.deviceName || member.displayName || member.name || 'Room Member',
+        type: member.name?.type || member.deviceType || member.type || 'desktop',
+        browser: member.name?.browser || member.browser || 'Browser',
+        os: member.name?.os || member.os || 'Unknown',
+        roomType: 'public',
+        lastSeen: Date.now(),
+        offline: false,
+        peerJSId: member.peerJSId || null,
+        isRoomMember: true // Flag to identify room members
+    };
+
+    if (typeof nearbyDevices !== 'undefined') {
+        nearbyDevices.set(member.id, deviceInfo);
+    }
+    
+    if (typeof lastSeen !== 'undefined') {
+        lastSeen.set(member.id, Date.now());
+    }
+
+    console.log('Added room member to nearby devices:', member.id, deviceInfo);
+}
+
 
 
 function handlePublicRoomLeft() {
@@ -281,6 +407,7 @@ window.clearRoomFromStorage = clearRoomFromStorage;
 window.handleRoomFromURL = handleRoomFromURL;
 window.initializeRoom = initializeRoom;
 window.handlePublicRoomCreated = handlePublicRoomCreated;
-
+window.handlePublicRoomJoined = handlePublicRoomJoined;
 window.handlePublicRoomLeft = handlePublicRoomLeft;
+window.addRoomMemberToNearbyDevices = addRoomMemberToNearbyDevices;
 

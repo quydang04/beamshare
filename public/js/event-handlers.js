@@ -98,6 +98,29 @@ function setupNavigationEvents() {
 }
 
 function setupRoomEvents() {
+    // Join Room (dialog)
+    const joinRoomBtnDialog = document.getElementById('join-room-btn-dialog');
+    const joinRoomInputDialog = document.getElementById('join-room-code-dialog');
+    if (joinRoomBtnDialog && joinRoomInputDialog) {
+        joinRoomBtnDialog.addEventListener('click', () => {
+            const roomCode = joinRoomInputDialog.value.trim();
+            if (roomCode) {
+                joinRoomByCode(roomCode);
+                // Close the dialog
+                document.getElementById('join-room-dialog').open = false;
+            }
+        });
+        joinRoomInputDialog.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const roomCode = joinRoomInputDialog.value.trim();
+                if (roomCode) {
+                    joinRoomByCode(roomCode);
+                    // Close the dialog
+                    document.getElementById('join-room-dialog').open = false;
+                }
+            }
+        });
+    }
     // Room code buttons (dialog)
     const copyRoomCodeDialog = document.getElementById('copy-room-code-dialog');
     if (copyRoomCodeDialog) {
@@ -388,4 +411,11 @@ window.selectDevice = selectDevice;
 window.saveSettings = saveSettings;
 window.updateDeviceNameRealtime = updateDeviceNameRealtime;
 window.updateLocalDeviceDisplay = updateLocalDeviceDisplay;
+
+// Join Room Dialog function
+function openJoinRoomDialog() {
+    document.getElementById('join-room-dialog').open = true;
+}
+
+window.openJoinRoomDialog = openJoinRoomDialog;
 

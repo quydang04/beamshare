@@ -41,7 +41,7 @@ let connectionPersistence = {
     heartbeatInterval: 5000, // 5 seconds
     heartbeatTimers: new Map(),
     connectionStates: new Map(), // peerId -> 'connecting' | 'connected' | 'disconnected' | 'reconnecting'
-    persistenceKey: 'beamshare_persistent_connections'
+    persistenceKey: 'viecloud_share_persistent_connections'
 };
 
 // Initialize persistent connection system
