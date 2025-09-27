@@ -1,102 +1,65 @@
-// Helper functions for device detection and utilities
+import crypto from "crypto";
 
-// Simple hash function for peer ID validation
-export function hashCode(str) {
-    let hash = 0;
-    if (str.length === 0) return hash;
-    for (let i = 0; i < str.length; i++) {
-        const char = str.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash; // Convert to 32bit integer
+export const hasher = (() => {
+    let password;
+    return {
+        hashCodeSalted(salt) {
+            if (!password) {
+                // password is created on first call.
+                password = randomizer.getRandomString(128);
+            }
+
+            return crypto.createHash("sha3-512")
+                .update(password)
+                .update(crypto.createHash("sha3-512").update(salt, "utf8").digest("hex"))
+                .digest("hex");
+        }
     }
-    return hash.toString();
-}
+})()
 
-// Parse user agent to extract device information
-export function getDeviceInfo(userAgent) {
-    if (!userAgent) {
-        return {
-            displayName: 'Unknown Device',
-            deviceName: 'Unknown Device',
-            type: 'desktop',
-            browser: 'Unknown',
-            os: 'Unknown'
-        };
-    }
-
-    // Simple user agent parsing (basic implementation)
-    const ua = userAgent.toLowerCase();
-    
-    // Detect OS
-    let os = 'Unknown';
-    if (ua.includes('windows')) os = 'Windows';
-    else if (ua.includes('mac os')) os = 'macOS';
-    else if (ua.includes('linux')) os = 'Linux';
-    else if (ua.includes('android')) os = 'Android';
-    else if (ua.includes('iphone') || ua.includes('ipad')) os = 'iOS';
-
-    // Detect browser
-    let browser = 'Unknown';
-    if (ua.includes('chrome') && !ua.includes('edg')) browser = 'Chrome';
-    else if (ua.includes('firefox')) browser = 'Firefox';
-    else if (ua.includes('safari') && !ua.includes('chrome')) browser = 'Safari';
-    else if (ua.includes('edg')) browser = 'Edge';
-    else if (ua.includes('opera')) browser = 'Opera';
-
-    // Detect device type
-    let type = 'desktop';
-    if (ua.includes('mobile') || ua.includes('android') || ua.includes('iphone')) {
-        type = 'mobile';
-    } else if (ua.includes('tablet') || ua.includes('ipad')) {
-        type = 'tablet';
-    }
-
-    // Generate device name
-    let deviceName = '';
-    if (os !== 'Unknown') {
-        deviceName = os.replace('Mac OS', 'Mac') + ' ';
-    }
-    deviceName += browser;
-
-    // Generate display name (simple color + animal combination)
-    const colors = ['Red', 'Blue', 'Green', 'Yellow', 'Purple', 'Orange', 'Pink', 'Cyan', 'Magenta', 'Lime', 'Indigo', 'Violet', 'Turquoise', 'Gold', 'Silver', 'Coral'];
-    const animals = ['Cat', 'Dog', 'Lion', 'Tiger', 'Bear', 'Wolf', 'Fox', 'Rabbit', 'Eagle', 'Dolphin', 'Elephant', 'Giraffe', 'Panda', 'Koala', 'Penguin', 'Owl'];
-
-    // Use a combination of user agent and current time for more uniqueness
-    const seed = userAgent + Date.now().toString();
-    const hash = Math.abs(hashCode(seed));
-    const colorIndex = hash % colors.length;
-    const animalIndex = Math.floor(hash / colors.length) % animals.length;
-    const displayName = `${colors[colorIndex]} ${animals[animalIndex]}`;
+export const randomizer = (() => {
+    let charCodeLettersOnly = r => 65 <= r && r <= 90;
+    let charCodeAllPrintableChars = r => r === 45 || 47 <= r && r <= 57 || 64 <= r && r <= 90 || 97 <= r && r <= 122;
 
     return {
-        displayName,
-        deviceName,
-        type,
-        browser,
-        os
-    };
-}
+        getRandomString(length, lettersOnly = false) {
+            const charCodeCondition = lettersOnly
+                ? charCodeLettersOnly
+                : charCodeAllPrintableChars;
 
-// Generate random string for room codes
-export function generateRandomString(length, alphanumeric = false) {
-    const chars = alphanumeric ? 
-        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789' :
-        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?';
-    
-    let result = '';
-    for (let i = 0; i < length; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
+            let string = "";
+            while (string.length < length) {
+                let arr = new Uint16Array(length);
+                crypto.webcrypto.getRandomValues(arr);
+                arr = Array.apply([], arr); /* turn into non-typed array */
+                arr = arr.map(function (r) {
+                    return r % 128
+                })
+                arr = arr.filter(function (r) {
+                    /* strip non-printables: if we transform into desirable range we have a probability bias, so I suppose we better skip this character */
+                    return charCodeCondition(r);
+                });
+                string += String.fromCharCode.apply(String, arr);
+            }
+            return string.substring(0, length)
+        }
     }
-    return result;
-}
+})()
 
-// Get client IP from request
-export function getClientIP(req) {
-    return req.headers['x-forwarded-for']?.split(',')[0] || 
-           req.headers['cf-connecting-ip'] || 
-           req.connection?.remoteAddress || 
-           req.socket?.remoteAddress || 
-           req.ip || 
-           '127.0.0.1';
-}
+/*
+    cyrb53 (c) 2018 bryc (github.com/bryc)
+    A fast and simple hash function with decent collision resistance.
+    Largely inspired by MurmurHash2/3, but with a focus on speed/simplicity.
+    Public domain. Attribution appreciated.
+*/
+export const cyrb53 = function(str, seed = 0) {
+    let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
+    for (let i = 0, ch; i < str.length; i++) {
+        ch = str.charCodeAt(i);
+        h1 = Math.imul(h1 ^ ch, 2654435761);
+        h2 = Math.imul(h2 ^ ch, 1597334677);
+    }
+    h1 = Math.imul(h1 ^ (h1>>>16), 2246822507) ^ Math.imul(h2 ^ (h2>>>13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2>>>16), 2246822507) ^ Math.imul(h1 ^ (h1>>>13), 3266489909);
+    return 4294967296 * (2097151 & h2) + (h1>>>0);
+};

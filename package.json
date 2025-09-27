@@ -1,24 +1,23 @@
 {
-  "name": "viecloud-share",
-  "version": "1.0.0",
-  "main": "index.js",
+  "name": "beamshare",
+  "version": "1.0",
+  "type": "module",
+  "description": "",
+  "main": "server/index.js",
   "scripts": {
-    "start": "node server/server.js",
-    "dev": "npm start",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server/index.js",
+    "start:prod": "node server/index.js --rate-limit --auto-restart"
   },
-  "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
-    "@zip.js/zip.js": "^2.7.72",
-    "express": "^5.1.0",
-    "nosleep.js": "^0.12.0",
-    "peerjs": "^1.5.5",
-    "ua-parser-js": "^2.0.4",
-    "unique-names-generator": "^4.7.1",
-    "ws": "^8.18.3"
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+    "ua-parser-js": "^1.0.37",
+    "unique-names-generator": "^4.3.0",
+    "ws": "^8.16.0"
   },
-  "type": "module"
+  "engines": {
+    "node": ">=15"
+  }
 }

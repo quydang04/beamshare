@@ -1,0 +1,20 @@
+# Build a Docker image whenever it is pushed to master
+
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+    - name: Build the Docker image
+      run: docker build --pull . -f Dockerfile -t beamshare
