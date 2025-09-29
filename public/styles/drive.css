@@ -1,0 +1,226 @@
+body {
+    font-family: 'Roboto', sans-serif;
+    background: var(--mdui-color-grey-100);
+    margin: 0;
+    color: var(--mdui-color-text-primary-on-background);
+}
+
+.mdui-appbar {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+}
+
+.drive-layout {
+    display: flex;
+    gap: 24px;
+    padding: 88px 32px 32px;
+}
+
+.drive-sidebar {
+    width: 260px;
+    min-width: 240px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.drive-sidebar button span.material-icons {
+    margin-right: 8px;
+}
+
+.drive-sidebar-section {
+    background: var(--mdui-color-white);
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 16px;
+}
+
+.drive-status {
+    margin: 0;
+    color: var(--mdui-color-text-secondary-on-background);
+}
+
+.drive-content {
+    flex: 1;
+    min-width: 0;
+    background: var(--mdui-color-white);
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+}
+
+.drive-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--mdui-color-text-secondary-on-background);
+    padding: 80px 0;
+    text-align: center;
+    gap: 12px;
+}
+
+.drive-empty .material-icons {
+    font-size: 56px;
+    color: var(--mdui-color-primary);
+}
+
+.drive-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 18px;
+}
+
+.drive-list.list-mode {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.drive-item {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.drive-item-grid {
+    padding: 20px 18px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.drive-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 18px 30px rgba(0, 0, 0, 0.08);
+}
+
+.drive-item-thumbnail {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    background: rgba(63, 81, 181, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    color: var(--mdui-color-primary);
+}
+
+.drive-item-title {
+    font-weight: 500;
+    font-size: 1rem;
+    word-break: break-word;
+}
+
+.drive-item-meta {
+    color: var(--mdui-color-text-secondary-on-background);
+    font-size: 0.85rem;
+}
+
+.drive-item-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.drive-item-list {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 12px;
+    border-radius: 12px;
+    background: rgba(63, 81, 181, 0.05);
+}
+
+.drive-item-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+}
+
+.drive-item-icon {
+    font-size: 32px;
+    color: var(--mdui-color-primary);
+}
+
+.drive-item-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.drive-item-name {
+    font-weight: 500;
+}
+
+.drive-item-sub {
+    font-size: 0.85rem;
+    color: var(--mdui-color-text-secondary-on-background);
+}
+
+.drive-item-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.drive-action .material-icons {
+    font-size: 20px;
+}
+
+.preview-image, .preview-video, .preview-frame {
+    width: 100%;
+    border-radius: 12px;
+    max-height: 70vh;
+    object-fit: contain;
+}
+
+.preview-audio {
+    width: 100%;
+}
+
+.preview-placeholder {
+    text-align: center;
+    color: var(--mdui-color-text-secondary-on-background);
+    padding: 24px 12px;
+}
+
+@media (max-width: 960px) {
+    .drive-layout {
+        flex-direction: column;
+        padding: 80px 16px 24px;
+    }
+
+    .drive-sidebar {
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .drive-sidebar-section {
+        flex: 1;
+    }
+
+    .drive-content {
+        padding: 16px;
+    }
+
+    .drive-list {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .drive-sidebar {
+        flex-direction: column;
+    }
+
+    .drive-item-list {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .drive-item-controls {
+        align-self: flex-end;
+    }
+}

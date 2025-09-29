@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BeamShare Drive</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/mdui@1.0.2/dist/css/mdui.min.css">
+    <link rel="stylesheet" type="text/css" href="styles/drive.css">
+</head>
+<body class="mdui-theme-primary-indigo mdui-theme-accent-indigo">
+    <header class="mdui-appbar mdui-appbar-fixed">
+        <div class="mdui-toolbar mdui-color-theme">
+            <a href="/" class="mdui-btn mdui-btn-icon" title="Quay lại BeamShare">
+                <span class="material-icons">arrow_back</span>
+            </a>
+            <span class="mdui-typo-title">BeamShare Drive</span>
+            <div class="mdui-toolbar-spacer"></div>
+            <button id="view-toggle" class="mdui-btn mdui-btn-icon" title="Chuyển chế độ hiển thị">
+                <span class="material-icons" id="view-toggle-icon">grid_view</span>
+            </button>
+            <button id="refresh-button" class="mdui-btn mdui-btn-icon" title="Tải lại danh sách">
+                <span class="material-icons">refresh</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="drive-layout">
+        <aside class="drive-sidebar">
+            <button id="open-upload" class="mdui-btn mdui-btn-raised mdui-btn-dense mdui-color-theme">
+                <span class="material-icons">cloud_upload</span>
+                <span>Tải tệp lên</span>
+            </button>
+            <div class="drive-sidebar-section">
+                <label class="mdui-textfield-label" for="visibility-filter">Bộ lọc hiển thị</label>
+                <select id="visibility-filter" class="mdui-select" mdui-select>
+                    <option value="all">Tất cả</option>
+                    <option value="public">Công khai</option>
+                    <option value="private">Riêng tư</option>
+                </select>
+            </div>
+            <div class="drive-sidebar-section">
+                <h3 class="mdui-typo-title">Trạng thái</h3>
+                <p id="drive-status" class="drive-status">Chưa có hoạt động.</p>
+            </div>
+        </aside>
+
+        <main class="drive-content">
+            <div class="drive-empty" id="drive-empty" hidden>
+                <span class="material-icons">drive_file_move</span>
+                <p>Thư viện của bạn đang trống. Hãy tải tệp đầu tiên lên!</p>
+            </div>
+            <div class="drive-list" id="drive-list"></div>
+        </main>
+    </div>
+
+    <div class="mdui-dialog" id="upload-dialog">
+        <div class="mdui-dialog-title">Tải tệp mới</div>
+        <div class="mdui-dialog-content">
+            <div class="mdui-textfield">
+                <label class="mdui-textfield-label" for="upload-file-input">Chọn tệp</label>
+                <input type="file" id="upload-file-input" accept="*/*">
+                <div class="mdui-textfield-helper" id="upload-file-name">Chưa chọn tệp.</div>
+            </div>
+            <div class="mdui-textfield">
+                <label class="mdui-textfield-label" for="upload-visibility">Quyền truy cập</label>
+                <select id="upload-visibility" class="mdui-select" mdui-select>
+                    <option value="public">Công khai</option>
+                    <option value="private">Riêng tư</option>
+                </select>
+            </div>
+        </div>
+        <div class="mdui-dialog-actions">
+            <button class="mdui-btn mdui-ripple" id="cancel-upload">Hủy</button>
+            <button class="mdui-btn mdui-ripple mdui-color-theme" id="confirm-upload" disabled>Tải lên</button>
+        </div>
+    </div>
+
+    <div class="mdui-dialog" id="preview-dialog">
+        <div class="mdui-dialog-title" id="preview-title">Xem trước tệp</div>
+        <div class="mdui-dialog-content" id="preview-body">
+            <div class="preview-placeholder">Đang chuẩn bị bản xem trước...</div>
+        </div>
+        <div class="mdui-dialog-actions">
+            <button class="mdui-btn" id="download-file">Tải xuống</button>
+            <button class="mdui-btn" id="share-file">Chia sẻ</button>
+            <button class="mdui-btn" id="close-preview">Đóng</button>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/mdui@1.0.2/dist/js/mdui.min.js" defer></script>
+    <script src="scripts/drive.js" defer></script>
+</body>
+</html>

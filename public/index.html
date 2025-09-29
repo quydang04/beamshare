@@ -39,68 +39,10 @@
     <link rel="preload" href="fonts/OpenSans/static/OpenSans-Medium.ttf" as="font" type="font/ttf" crossorigin>
     <link rel="stylesheet" type="text/css" href="styles/styles-main.css">
     <link rel="stylesheet" type="text/css" href="styles/beamshare-theme.css">
-    <link rel="stylesheet" type="text/css" href="styles/file-dashboard.css">
     <link rel="manifest" href="manifest.json">
 </head>
 
 <body translate="no">
-    <div id="file-dashboard-overlay" hidden>
-        <div class="file-dashboard-panel">
-            <div class="file-dashboard-header">
-                <h2>BeamShare Drive</h2>
-                <button class="file-dashboard-close" id="close-dashboard" aria-label="Đóng">×</button>
-            </div>
-            <div class="file-dashboard-body">
-                <section class="dashboard-upload-card">
-                    <label for="dashboard-file-input">Tải tệp lên</label>
-                    <input type="file" id="dashboard-file-input" name="file" accept="*/*">
-                    <select id="dashboard-visibility" aria-label="Quyền truy cập">
-                        <option value="public">Công khai</option>
-                        <option value="private">Riêng tư</option>
-                    </select>
-                    <button id="dashboard-upload-button" disabled>Tải lên</button>
-                </section>
-
-                <div class="file-dashboard-status" id="dashboard-status">Chưa có hoạt động chia sẻ nào.</div>
-
-                <div class="file-dashboard-table-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Tên tệp</th>
-                                <th>Loại</th>
-                                <th>Kích thước</th>
-                                <th>Quyền</th>
-                                <th>Ngày tạo</th>
-                                <th>Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody id="file-dashboard-tbody">
-                            <tr class="file-dashboard-empty">
-                                <td colspan="6">Chưa có tệp nào trong thư viện.</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="file-preview-modal" hidden>
-        <div class="file-preview-card">
-            <div class="file-preview-header">
-                <h3 id="file-preview-title"></h3>
-                <button class="file-dashboard-close" id="close-preview" aria-label="Đóng xem trước">×</button>
-            </div>
-            <div class="file-preview-body" id="file-preview-container">
-                <div class="preview-fallback">Đang tải bản xem trước...</div>
-            </div>
-            <div class="file-preview-footer">
-                <button class="secondary" id="download-preview">Tải xuống</button>
-                <button id="share-preview">Chia sẻ qua BeamShare</button>
-            </div>
-        </div>
-    </div>
     <header class="row-reverse wrap opacity-0">
         <a href="#about" class="icon-button" data-i18n-key="header.about" data-i18n-attrs="title aria-label">
             <svg class="icon">
@@ -136,11 +78,11 @@
                 <use xlink:href="#notifications"></use>
             </svg>
         </div>
-        <div id="open-dashboard" class="icon-button" title="BeamShare Drive">
+        <a id="open-dashboard" class="icon-button" title="BeamShare Drive" href="/drive">
             <svg class="icon">
                 <use xlink:href="#dashboard-icon"></use>
             </svg>
-        </div>
+        </a>
         <div id="install" class="icon-button" data-i18n-key="header.install" data-i18n-attrs="title" hidden>
             <svg class="icon">
                 <use xlink:href="#homescreen"></use>
@@ -726,7 +668,6 @@
     <script src="scripts/persistent-storage.js" defer></script>
     <script src="scripts/ui-main.js" defer></script>
     <script src="scripts/main.js" defer></script>
-    <script src="scripts/dashboard.js" defer></script>
     <!-- Sounds -->
     <audio id="blop" autobuffer="true">
         <source src="sounds/blop.mp3" type="audio/mpeg">

@@ -237,8 +237,8 @@ export default class BeamShareServer {
             });
         });
 
-        app.get('/dashboard', (_req, res) => {
-            res.sendFile(path.join(publicPathAbs, 'index.html'));
+        app.get('/drive', (_req, res) => {
+            res.sendFile(path.join(publicPathAbs, 'drive.html'));
         });
 
         app.get('/', (_req, res) => {
